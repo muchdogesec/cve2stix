@@ -171,8 +171,10 @@ def append_data(results, file_system):
             if filename != "cve-bundle.json":
                 file_path = os.path.join(root, filename)
                 with open(file_path, "rb") as file:
-                    stix_object = json.load(file)
-                    yield stix_object
+                    try:
+                        yield json.load(file)
+                    except Exception  as e:
+                        logger.info(f"append_data: skipping unprocessable file at {file_path}")
 
 def generate_md5_from_list(stix_objects: list) -> str:
     stix_objects = sorted(stix_objects, key=lambda obj: obj.get('id'))
