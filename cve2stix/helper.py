@@ -170,11 +170,12 @@ def append_data(results, file_system):
         for filename in files:
             if filename != "cve-bundle.json":
                 file_path = os.path.join(root, filename)
-                with open(file_path, "r") as file:
+                with open(file_path, "rb") as file:
                     stix_object = json.load(file)
                     yield stix_object
 
 def generate_md5_from_list(stix_objects: list) -> str:
+    stix_objects = sorted(stix_objects, key=lambda obj: obj.get('id'))
     json_str = json.dumps(stix_objects, sort_keys=True).encode('utf-8')
     return hashlib.md5(json_str).hexdigest()
 
