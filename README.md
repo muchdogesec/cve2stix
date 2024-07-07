@@ -183,6 +183,11 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
+            "source_name": "cvssMetricV2-baseSeverity",
+            "description": "<cvssMetricV2-baseSeverity>",
+            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
+        },
+        {
             "source_name": "cvssMetricV30-vectorString",
             "description": "<cvssMetricV30-vectorString>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
@@ -200,6 +205,11 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
         {
             "source_name": "cvssMetricV30-baseScore",
             "description": "<cvssMetricV30-baseScore>",
+            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
+        },
+        {
+            "source_name": "cvssMetricV30-baseSeverity",
+            "description": "<cvssMetricV30-baseSeverity>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
@@ -222,7 +232,12 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "description": "<cvssMetricV31-baseScore>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
-    ],
+        {
+            "source_name": "cvssMetricV31-baseSeverity",
+            "description": "<cvssMetricV31-baseSeverity>",
+            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
+        }
+],
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
         "<IMPORTED MARKING DEFINTION OBJECT>"
