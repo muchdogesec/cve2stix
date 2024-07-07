@@ -119,6 +119,10 @@ celery -A cve2stix.celery worker --loglevel=info --purge
 
 BEFORE CONTINUING: [I STRONGLY recommend you read our blog on CVE/CPE API responses](https://www.dogesec.com/blog/converting_cve_cpe_to_stix_objects/), and the logic to interpret them. The blog can be found here. It is also linked at the bottom of this readme. This code is built around that logic.
 
+The structure of the STIX objects on a graph looks as follows:
+
+<iframe width="768" height="432" src="https://miro.com/app/live-embed/uXjVK0iYlTw=/?moveToViewport=-959,-619,1650,789&embedId=218796126914" frameborder="0" scrolling="no" allow="fullscreen; clipboard-read; clipboard-write" allowfullscreen></iframe>
+
 ### Marking Definition / Identity
 
 These are hardcoded and imported from our [stix4doge repository](https://github.com/muchdogesec/stix4doge). Specifically these objects;
@@ -159,21 +163,6 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "description": "<vulnerabilities.cve.references.tags.[n], vulnerabilities.cve.references.tags.[n]>"
         },
         {
-            "source_name": "epssDate",
-            "description": "<epssDate>",
-            "url": "https://api.first.org/data/v1/epss?cve=<CVE ID>"
-        },
-        {
-            "source_name": "epssScore",
-            "description": "<epssScore>",
-            "url": "https://api.first.org/data/v1/epss?cve=<CVE ID>"
-        },
-        {
-            "source_name": "epssPercentile",
-            "description": "<epssPercentile>",
-            "url": "https://api.first.org/data/v1/epss?cve=<CVE ID>"
-        },
-        {
             "source_name": "cvssMetricV2-vectorString",
             "description": "<cvssMetricV2-vectorString>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
@@ -186,6 +175,11 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
         {
             "source_name": "cvssMetricV2-impactScore",
             "description": "<cvssMetricV2-impactScore>",
+            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
+        },
+        {
+            "source_name": "cvssMetricV2-baseScore",
+            "description": "<cvssMetricV2-baseScore>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
@@ -204,6 +198,11 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
+            "source_name": "cvssMetricV30-baseScore",
+            "description": "<cvssMetricV30-baseScore>",
+            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
+        },
+        {
             "source_name": "cvssMetricV31-vectorString",
             "description": "<cvssMetricV31-vectorString>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
@@ -218,6 +217,11 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "description": "<cvssMetricV31-impactScore>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         }
+        {
+            "source_name": "cvssMetricV31-baseScore",
+            "description": "<cvssMetricV31-baseScore>",
+            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
+        },
     ],
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
@@ -237,22 +241,6 @@ e.g `CVE-2019-18939` = `37f8739d-1702-5e39-bc7e-d0710e06487a` = `vulnerability--
 Sometime CVEs are revoked for a variety of reasons. See: https://nvd.nist.gov/vuln/vulnerability-status
 
 When a CVE is revoked, the `vulnStatus` becomes `REJECT` in an update. In which case a `revoked` property is included in the Vulnerability SDO with its value set to `true`.
-
-#### A note on EPSS
-
-On import and update, we should assign an EPSS score to a Vulnerability object.
-
-The EPSS score can be obtained from the EPSS API using the CVE ID, e.g.
-
-```
-GET https://api.first.org/data/v1/epss?cve=CVE-2022-27225
-```
-
-This will return data in the following structure
-
-```
-{"status":"OK","status-code":200,"version":"1.0","access":"public","total":1,"offset":0,"limit":100,"data":[{"cve":"CVE-2022-27225","epss":"0.001500000","percentile":"0.509900000","date":"2023-11-14"}]}
-```
 
 ### Indicator SDOs
 
