@@ -25,6 +25,11 @@ The code in this repository turns CVEs into STIX 2.1 objects, and keeps them upd
 3. Stores the STIX 2.1 Objects in the file store
 4. Creates STIX Bundles of generated objects for each update run
 
+## tl;dr
+
+[![cve2stix](https://img.youtube.com/vi/j8DWB7QF95g/0.jpg)](https://www.youtube.com/watch?v=j8DWB7QF95g)
+
+
 ## Install the script
 
 ```shell
