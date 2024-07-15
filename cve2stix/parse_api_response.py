@@ -50,15 +50,13 @@ def parse_cvss_metrics_refs(cve):
     try:
         key = list(cve.get("metrics").keys())[0]
         container = cve.get("metrics", {}).get(key)[0]
-        # for k, v in container.items():
-        #     labels.append({
-        #         "source_name": f"{key}-{k}",
-        #         "description": v,
-        #         "url": f"https://nvd.nist.gov/vuln/detail/{cve_id}"
-        #     })
-        labels.append(dict(source_name=f"{key}-vectorString", description=container.get('cvssData', {}).get('vectorString'), url=f"https://nvd.nist.gov/vuln/detail/{cve_id}"))
         labels.append(dict(source_name=f"{key}-exploitabilityScore", description=container.get('exploitabilityScore'), url=f"https://nvd.nist.gov/vuln/detail/{cve_id}"))
         labels.append(dict(source_name=f"{key}-impactScore", description=container.get('impactScore'), url=f"https://nvd.nist.gov/vuln/detail/{cve_id}"))
+        cvss_data = container.get('cvssData', {})
+        for cvss_key in ["vectorString", "baseScore", "baseSeverity"]:
+            if cvss_value := cvss_data.get(cvss_key):
+                labels.append(dict(source_name=f"{key}-{cvss_key}", description=cvss_value, url=f"https://nvd.nist.gov/vuln/detail/{cve_id}"))
+
     except Exception as e:
         logger.error(e)
         return labels
