@@ -1164,8 +1164,6 @@ The script will store the STIX objects created in the `stix2_objects` directory.
 
 I STRONGLY recommend you [use cxe2stix_helper to perform the backfill](https://github.com/muchdogesec/cxe2stix_helper). cxe2stix_helper will handle the splitting of the bundle files into your desired time ranges.
 
-Note, [you can easily download historic CVE data from our cti_knowledge_base repository so you don't have to run this script](https://github.com/muchdogesec/cti_knowledge_base_store).
-
 ## Useful supporting tools
 
 * To generate STIX 2.1 Objects: [stix2 Python Lib](https://stix2.readthedocs.io/en/latest/)
