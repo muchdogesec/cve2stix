@@ -12,7 +12,7 @@ if bool(os.getenv("CENTRAL_CELERY")):
 if not bool(os.getenv("CENTRAL_CELERY")):
     CELERY_RESULT_BACKEND='amqp://',
     app = Celery(
-        'cve2stix', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0'
+        'cve2stix', broker=Config.REDIS_URL, backend=Config.REDIS_URL
     )
     app.conf.task_default_queue = 'default'
     app.conf.worker_concurrency = 8  # Set the number of worker processes
@@ -24,7 +24,7 @@ if not bool(os.getenv("CENTRAL_CELERY")):
 @setup_logging.connect
 def config_loggers(*args, **kwargs):
     from logging.config import dictConfig  # noqa
-    dictConfig({})
+    # dictConfig({})
 
 
 @app.task()
