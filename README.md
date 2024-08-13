@@ -126,7 +126,7 @@ BEFORE CONTINUING: [I STRONGLY recommend you read our blog on CVE/CPE API respon
 
 The structure of the STIX objects on a graph looks as follows:
 
-<iframe width="768" height="432" src="https://miro.com/app/live-embed/uXjVK0iYlTw=/?moveToViewport=-959,-619,1650,789&embedId=218796126914" frameborder="0" scrolling="no" allow="fullscreen; clipboard-read; clipboard-write" allowfullscreen></iframe>
+https://miro.com/app/board/uXjVK0iYlTw=/
 
 ### Marking Definition / Identity
 
