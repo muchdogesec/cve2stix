@@ -304,6 +304,10 @@ Here is the structure of the Indicator SDO and how cve2stix populates it;
             "source_name": "cve",
             "external_id": "<vulnerabilities.cve.id>",
             "url": "https://nvd.nist.gov/vuln/detail/<vulnerabilities.cve.id>"
+        },
+        {
+            "source_name": "vulnerable_cpe",
+            "external_id": "<cpe_id>",
         }
     ],
     "object_marking_refs": [
