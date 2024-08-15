@@ -83,6 +83,7 @@ def external_reference(cve):
 
 def build_patterns_for_cve(cve_id: str, pattern_configurations, config: Config):
     patterns = []
+    vulnerable_cpe_matches = []
     cpe_names_all = []
     cpe_name_ids = []
     criteria_id_map : dict[str, list] = {}
@@ -106,10 +107,12 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations, config: Config):
         node_patterns = []
         for node in pconfig.get("nodes"):
             node_operator = " {} " .format(node.get("operator", JOINER).strip())
-            node_matches = [criteria_id_map[match["matchCriteriaId"]] for match in node.get("cpeMatch")]
+            node_matches = [criteria_id_map[match["matchCriteriaId"]] for match in node.get("cpeMatch", [])]
+            vulnerable_cpe_matches.extend([match['criteria'] for match in node.get("cpeMatch", [])])
             node_patterns.append("[{}]".format(node_operator.join(node_matches)))
+            
         patterns.append("({})".format(pconfig_operator.join(node_patterns)))
-    return JOINER.join(patterns), cpe_name_ids
+    return vulnerable_cpe_matches, JOINER.join(patterns), cpe_name_ids
 
 def get_description(cve):
     for d in cve["descriptions"]:
@@ -150,6 +153,8 @@ def parse_cve_api_response(
 
             indicator_dict = None
             if cve.get("configurations"):
+                vulnerable_cpe_matches, pattern_so_far, cpeIds = build_patterns_for_cve(cve["id"], cve.get("configurations", []), config)
+
                 indicator_dict = {
                     "id": "indicator--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
                     "created_by_ref": config.CVE2STIX_IDENTITY_REF.get("id"),
@@ -163,6 +168,7 @@ def parse_cve_api_response(
                     "name": cve["id"],
                     "description": cve["descriptions"][0]["value"],
                     "pattern_type": "stix",
+                    "pattern": pattern_so_far,
                     "valid_from": datetime.strptime(
                         cve["published"], "%Y-%m-%dT%H:%M:%S.%f"
                     ),
@@ -174,12 +180,8 @@ def parse_cve_api_response(
                             "url": "https://nvd.nist.gov/vuln/detail/" + cve["id"],
                         },
 
-                    ])
+                    ]) + [dict(source_name='vulnerable_cpe', external_id=cpe_id) for cpe_id in vulnerable_cpe_matches]
                 }
-                pattern_so_far, cpeIds = build_patterns_for_cve(cve["id"], cve.get("configurations", []), config)
-                pattern = pattern_so_far.replace("\\", "\\\\")
-                pattern = pattern.replace("\\\\'", "\\'")
-                indicator_dict["pattern"] = pattern
             try:
                 vulnerability = Vulnerability(**vulnerability_dict)
                 config.fs.add(vulnerability)
