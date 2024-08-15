@@ -123,6 +123,12 @@ def get_description(cve):
             return d["value"]
     return cve["descriptions"][0]["value"]
 
+def get_cve_tags(cve):
+    tags = []
+    for tag_item in cve.get('cveTags', []):
+        tags.extend(tag_item.get('tags', []))
+    return tags
+
 def parse_cve_api_response(
     cve_content, config: Config) -> List[CVE]:
     parsed_response = []
@@ -147,7 +153,7 @@ def parse_cve_api_response(
                         "url": "https://nvd.nist.gov/vuln/detail/"+cve["id"],
                     }
                 ] + external_reference(cve) + parse_cvss_metrics_refs(cve)),
-                "labels": cve.get('cveTags', []),
+                "labels": get_cve_tags(cve),
                 "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF]+[config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
             }
             if cve.get("vulnStatus").lower() in ["rejected", "revoked"]:
