@@ -1052,7 +1052,7 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
     "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
-    "relationship_type": "identifies",
+    "relationship_type": "detects",
     "source_ref": "indicator--<INDICATOR STIX OBJECT>",
     "target_ref": "vulnerability--<VULNERABILITY STIX OBJECT>",
     "external_references": [
