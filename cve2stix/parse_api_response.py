@@ -107,8 +107,11 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations, config: Config):
         node_patterns = []
         for node in pconfig.get("nodes"):
             node_operator = " {} " .format(node.get("operator", JOINER).strip())
-            node_matches = [criteria_id_map[match["matchCriteriaId"]] for match in node.get("cpeMatch", [])]
-            vulnerable_cpe_matches.extend([match['criteria'] for match in node.get("cpeMatch", [])])
+            node_matches = []
+            for match in node.get("cpeMatch", []):
+                node_matches.append(criteria_id_map[match["matchCriteriaId"]])
+                if match.get('vulnerable'):
+                    vulnerable_cpe_matches.append(criteria_id_map[match['matchCriteriaId']])
             node_patterns.append("[{}]".format(node_operator.join(node_matches)))
             
         patterns.append("({})".format(pconfig_operator.join(node_patterns)))
