@@ -171,77 +171,77 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
         },
         {
             "source_name": "cvssMetricV2-vectorString",
-            "description": "<cvssMetricV2-vectorString>",
+            "description": "<cvssMetricV2-vectorString (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV2-exploitabilityScore",
-            "description": " <cvssMetricV2-exploitabilityScore>",
+            "description": " <cvssMetricV2-exploitabilityScore (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV2-impactScore",
-            "description": "<cvssMetricV2-impactScore>",
+            "description": "<cvssMetricV2-impactScore (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV2-baseScore",
-            "description": "<cvssMetricV2-baseScore>",
+            "description": "<cvssMetricV2-baseScore (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV2-baseSeverity",
-            "description": "<cvssMetricV2-baseSeverity>",
+            "description": "<cvssMetricV2-baseSeverity (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV30-vectorString",
-            "description": "<cvssMetricV30-vectorString>",
+            "description": "<cvssMetricV30-vectorString (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV30-exploitabilityScore",
-            "description": " <cvssMetricV30-exploitabilityScore>",
+            "description": " <cvssMetricV30-exploitabilityScore (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV30-impactScore",
-            "description": "<cvssMetricV30-impactScore>",
+            "description": "<cvssMetricV30-impactScore (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV30-baseScore",
-            "description": "<cvssMetricV30-baseScore>",
+            "description": "<cvssMetricV30-baseScore (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV30-baseSeverity",
-            "description": "<cvssMetricV30-baseSeverity>",
+            "description": "<cvssMetricV30-baseSeverity (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV31-vectorString",
-            "description": "<cvssMetricV31-vectorString>",
+            "description": "<cvssMetricV31-vectorString (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV31-exploitabilityScore",
-            "description": " <cvssMetricV31-exploitabilityScore>",
+            "description": " <cvssMetricV31-exploitabilityScore (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV31-impactScore",
-            "description": "<cvssMetricV31-impactScore>",
+            "description": "<cvssMetricV31-impactScore (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         }
         {
             "source_name": "cvssMetricV31-baseScore",
-            "description": "<cvssMetricV31-baseScore>",
+            "description": "<cvssMetricV31-baseScore (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         },
         {
             "source_name": "cvssMetricV31-baseSeverity",
-            "description": "<cvssMetricV31-baseSeverity>",
+            "description": "<cvssMetricV31-baseSeverity (for type=primary)>",
             "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         }
 ],
