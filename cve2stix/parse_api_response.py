@@ -81,8 +81,6 @@ def external_reference(cve):
         })
     return references
 
-
-
 def build_patterns_for_cve(cve_id: str, pattern_configurations, config: Config):
     patterns = []
     cpe_names_all = []
@@ -113,7 +111,11 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations, config: Config):
         patterns.append("({})".format(pconfig_operator.join(node_patterns)))
     return JOINER.join(patterns), cpe_name_ids
 
-
+def get_description(cve):
+    for d in cve["descriptions"]:
+        if d.get('lang') == 'en':
+            return d["value"]
+    return cve["descriptions"][0]["value"]
 
 def parse_cve_api_response(
     cve_content, config: Config) -> List[CVE]:
@@ -131,7 +133,7 @@ def parse_cve_api_response(
                     cve["lastModified"], "%Y-%m-%dT%H:%M:%S.%f"
                 ),
                 "name": cve["id"],
-                "description": cve["descriptions"][0]["value"],
+                "description": get_description(cve),
                 "external_references": cleanup([
                     {
                         "source_name": "cve",
@@ -139,7 +141,7 @@ def parse_cve_api_response(
                         "url": "https://nvd.nist.gov/vuln/detail/"+cve["id"],
                     }
                 ] + external_reference(cve) + parse_cvss_metrics_refs(cve)),
-                # + get_epss_refs(config.epss, cve.get('id')))
+                "labels": cve.get('cveTags', []),
                 "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF]+[config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
             }
             if cve.get("vulnStatus").lower() in ["rejected", "revoked"]:
