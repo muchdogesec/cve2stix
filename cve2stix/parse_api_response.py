@@ -198,7 +198,7 @@ def parse_cve_api_response(
                         created=vulnerability["created"],
                         created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
                         modified=vulnerability["modified"],
-                        relationship_type="identifies",
+                        relationship_type="detects",
                         source_ref=indicator,
                         target_ref=vulnerability,
                         object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF] + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],

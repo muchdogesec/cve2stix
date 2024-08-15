@@ -29,7 +29,6 @@ The code in this repository turns CVEs into STIX 2.1 objects, and keeps them upd
 
 [![cve2stix](https://img.youtube.com/vi/j8DWB7QF95g/0.jpg)](https://www.youtube.com/watch?v=j8DWB7QF95g)
 
-
 ## Install the script
 
 ```shell
