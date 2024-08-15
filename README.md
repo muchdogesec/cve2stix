@@ -150,6 +150,9 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
     "modified": "<vulnerabilities.cve.lastModified>",
     "name": "<vulnerabilities.cve.id>",
     "description": "<vulnerabilities.cve.descriptions.description_data.value> (if multiple, where lan = en, else first result)",
+    "labels": [
+        "<vulnerabilities.cve.cveTags>"
+    ],
     "external_references": [
         {
             "source_name": "cve",
