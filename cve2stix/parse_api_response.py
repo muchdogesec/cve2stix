@@ -48,15 +48,15 @@ def parse_cvss_metrics_refs(cve):
     labels = []
     cve_id = cve.get('id')
     try:
-        key = list(cve.get("metrics").keys())[0]
-        container = cve.get("metrics", {}).get(key)[0]
-        labels.append(dict(source_name=f"{key}-exploitabilityScore", description=container.get('exploitabilityScore'), url=f"https://nvd.nist.gov/vuln/detail/{cve_id}"))
-        labels.append(dict(source_name=f"{key}-impactScore", description=container.get('impactScore'), url=f"https://nvd.nist.gov/vuln/detail/{cve_id}"))
-        cvss_data = container.get('cvssData', {})
-        for cvss_key in ["vectorString", "baseScore", "baseSeverity"]:
-            if cvss_value := cvss_data.get(cvss_key):
-                labels.append(dict(source_name=f"{key}-{cvss_key}", description=cvss_value, url=f"https://nvd.nist.gov/vuln/detail/{cve_id}"))
-
+        # labels.extend(dict(source_name=f'cvss_metric-{key}', description=metric) for key, metric in cve.get("metrics").items())
+        for metric_name, metrics in cve.get('metrics', {}).items():
+            container = metrics[0]
+            cvss_data = container.pop('cvssData', {})
+            cvss_data.update(container)
+            for cvss_key in ["exploitabilityScore", "impactScore", "vectorString", "baseScore", "baseSeverity"]:
+                if cvss_value := cvss_data.get(cvss_key):
+                    labels.append(dict(source_name=f"{metric_name}-{cvss_key}", description=cvss_value, url=f"https://nvd.nist.gov/vuln/detail/{cve_id}"))
+            # break # only record first one
     except Exception as e:
         logger.error(e)
         return labels
@@ -107,8 +107,11 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations, config: Config):
         node_patterns = []
         for node in pconfig.get("nodes"):
             node_operator = " {} " .format(node.get("operator", JOINER).strip())
-            node_matches = [criteria_id_map[match["matchCriteriaId"]] for match in node.get("cpeMatch", [])]
-            vulnerable_cpe_matches.extend([match['criteria'] for match in node.get("cpeMatch", [])])
+            node_matches = []
+            for match in node.get("cpeMatch", []):
+                node_matches.append(criteria_id_map[match["matchCriteriaId"]])
+                if match.get('vulnerable'):
+                    vulnerable_cpe_matches.append(criteria_id_map[match['matchCriteriaId']])
             node_patterns.append("[{}]".format(node_operator.join(node_matches)))
             
         patterns.append("({})".format(pconfig_operator.join(node_patterns)))
@@ -119,6 +122,12 @@ def get_description(cve):
         if d.get('lang') == 'en':
             return d["value"]
     return cve["descriptions"][0]["value"]
+
+def get_cve_tags(cve):
+    tags = []
+    for tag_item in cve.get('cveTags', []):
+        tags.extend(tag_item.get('tags', []))
+    return tags
 
 def parse_cve_api_response(
     cve_content, config: Config) -> List[CVE]:
@@ -144,7 +153,7 @@ def parse_cve_api_response(
                         "url": "https://nvd.nist.gov/vuln/detail/"+cve["id"],
                     }
                 ] + external_reference(cve) + parse_cvss_metrics_refs(cve)),
-                "labels": cve.get('cveTags', []),
+                "labels": get_cve_tags(cve),
                 "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF]+[config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
             }
             if cve.get("vulnStatus").lower() in ["rejected", "revoked"]:
