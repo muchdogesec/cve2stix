@@ -5,7 +5,7 @@ import json
 import time
 import requests
 from stix2 import Vulnerability, Indicator, Relationship, Report
-from typing import List
+from typing import List, Never
 from .config import Config
 from .helper import cleanup
 from .loggings import logger
@@ -73,7 +73,7 @@ def external_reference(cve):
                 "url": f"https://cwe.mitre.org/data/definitions/{weakness.get('description')[0].get('value')}.html"
             })
 
-    for reference in cve.get("references"):
+    for reference in cve.get("references", []):
         references.append({
             "source_name": reference.get("source"),
             "url": reference.get("url"),
@@ -129,140 +129,123 @@ def get_cve_tags(cve):
         tags.extend(tag_item.get('tags', []))
     return tags
 
+
+
+def parse_cve_vulnerability(cve, config) -> Vulnerability:
+    vulnerability_dict = {
+        "id":"vulnerability--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
+        "created_by_ref": config.CVE2STIX_IDENTITY_REF.get("id"),
+        "created": datetime.strptime(cve["published"], "%Y-%m-%dT%H:%M:%S.%f"),
+        "modified": datetime.strptime(
+            cve["lastModified"], "%Y-%m-%dT%H:%M:%S.%f"
+        ),
+        "name": cve["id"],
+        "description": get_description(cve),
+        "external_references": cleanup([
+            {
+                "source_name": "cve",
+                "external_id": cve["id"],
+                "url": "https://nvd.nist.gov/vuln/detail/"+cve["id"],
+            }
+        ] + external_reference(cve) + parse_cvss_metrics_refs(cve)),
+        "labels": get_cve_tags(cve),
+        "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF]+[config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
+    }
+    if cve.get("vulnStatus").lower() in ["rejected", "revoked"]:
+        vulnerability_dict['revoked'] = True
+
+    vulnerability = Vulnerability(**vulnerability_dict)
+    return vulnerability
+        
+def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) -> tuple[Indicator, Relationship]|list[Never]:
+    if not cve.get("configurations"):
+        return []
+    vulnerable_cpe_matches, pattern_so_far, cpeIds = build_patterns_for_cve(cve["id"], cve.get("configurations", []), config)
+
+    indicator_dict = {
+        "id": "indicator--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
+        "created_by_ref": config.CVE2STIX_IDENTITY_REF.get("id"),
+        "created": datetime.strptime(
+            cve["published"], "%Y-%m-%dT%H:%M:%S.%f"
+        ),
+        "modified": datetime.strptime(
+            cve["lastModified"], "%Y-%m-%dT%H:%M:%S.%f"
+        ),
+        "indicator_types": ["compromised"],
+        "name": cve["id"],
+        "description": cve["descriptions"][0]["value"],
+        "pattern_type": "stix",
+        "pattern": pattern_so_far,
+        "valid_from": datetime.strptime(
+            cve["published"], "%Y-%m-%dT%H:%M:%S.%f"
+        ),
+        "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF]+[config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
+        "external_references": cleanup([
+            {
+                "source_name": "cve",
+                "external_id": cve["id"],
+                "url": "https://nvd.nist.gov/vuln/detail/" + cve["id"],
+            },
+
+        ]) + [dict(source_name='vulnerable_cpe', external_id=cpe_id) for cpe_id in vulnerable_cpe_matches]
+    }
+
+    indicator = Indicator(**indicator_dict)
+    relationship = Relationship(
+        id="relationship--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
+        created=vulnerability["created"],
+        created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
+        modified=vulnerability["modified"],
+        relationship_type="detects",
+        source_ref=indicator,
+        target_ref=vulnerability,
+        object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF] + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
+        external_references= [
+            {
+                "source_name": "cve",
+                "external_id": cve.get("id"),
+                "url": "https://nvd.nist.gov/vuln/detail/{}".format(cve.get('id'))
+            }
+        ]
+    )
+    return [indicator, relationship]
+    
+def parse_cve_report(cve: dict, config: Config):
+    if cve.get("cisaVulnerabilityName"):
+        return Report(**{
+            "id": "report--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
+            "created_by_ref": config.CVE2STIX_IDENTITY_REF.get("id"),
+            "created": datetime.strptime(
+                cve["published"], "%Y-%m-%dT%H:%M:%S.%f"
+            ),
+            "modified": datetime.strptime(
+                cve["lastModified"], "%Y-%m-%dT%H:%M:%S.%f"
+            ),
+            "name": "CISA KEV: {}".format(cve.get("cisaVulnerabilityName")),
+            "description": "{} Action due by: {}".format(cve.get("cisaRequiredAction"),cve.get("cisaActionDue")),
+            "published": datetime.strptime(cve["published"],"%Y-%m-%dT%H:%M:%S.%f"),
+            "report_types": ["vulnerability"],
+            "object_refs": [
+                "vulnerability--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}")))
+            ],
+            "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF] + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
+            "external_references": [ {
+                "source_name": "cve",
+                "external_id": cve.get("id"),
+                "url": "https://nvd.nist.gov/vuln/detail/{}".format(cve.get('id'))
+            }
+            ]
+        })
+    return []
+    
 def parse_cve_api_response(
     cve_content, config: Config) -> List[CVE]:
     parsed_response = []
     for cve_item in cve_content["vulnerabilities"]:
         cve = cve_item["cve"]
         logger.info(f"CVE-> {cve.get('id')}")
-
-        try:
-            vulnerability_dict = {
-                "id":"vulnerability--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
-                "created_by_ref": config.CVE2STIX_IDENTITY_REF.get("id"),
-                "created": datetime.strptime(cve["published"], "%Y-%m-%dT%H:%M:%S.%f"),
-                "modified": datetime.strptime(
-                    cve["lastModified"], "%Y-%m-%dT%H:%M:%S.%f"
-                ),
-                "name": cve["id"],
-                "description": get_description(cve),
-                "external_references": cleanup([
-                    {
-                        "source_name": "cve",
-                        "external_id": cve["id"],
-                        "url": "https://nvd.nist.gov/vuln/detail/"+cve["id"],
-                    }
-                ] + external_reference(cve) + parse_cvss_metrics_refs(cve)),
-                "labels": get_cve_tags(cve),
-                "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF]+[config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
-            }
-            if cve.get("vulnStatus").lower() in ["rejected", "revoked"]:
-                vulnerability_dict['revoked'] = True
-
-
-            indicator_dict = None
-            if cve.get("configurations"):
-                vulnerable_cpe_matches, pattern_so_far, cpeIds = build_patterns_for_cve(cve["id"], cve.get("configurations", []), config)
-
-                indicator_dict = {
-                    "id": "indicator--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
-                    "created_by_ref": config.CVE2STIX_IDENTITY_REF.get("id"),
-                    "created": datetime.strptime(
-                        cve["published"], "%Y-%m-%dT%H:%M:%S.%f"
-                    ),
-                    "modified": datetime.strptime(
-                        cve["lastModified"], "%Y-%m-%dT%H:%M:%S.%f"
-                    ),
-                    "indicator_types": ["compromised"],
-                    "name": cve["id"],
-                    "description": cve["descriptions"][0]["value"],
-                    "pattern_type": "stix",
-                    "pattern": pattern_so_far,
-                    "valid_from": datetime.strptime(
-                        cve["published"], "%Y-%m-%dT%H:%M:%S.%f"
-                    ),
-                    "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF]+[config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
-                    "external_references": cleanup([
-                        {
-                            "source_name": "cve",
-                            "external_id": cve["id"],
-                            "url": "https://nvd.nist.gov/vuln/detail/" + cve["id"],
-                        },
-
-                    ]) + [dict(source_name='vulnerable_cpe', external_id=cpe_id) for cpe_id in vulnerable_cpe_matches]
-                }
-            try:
-                vulnerability = Vulnerability(**vulnerability_dict)
-                config.fs.add(vulnerability)
-            except Exception as e:
-                logger.error(e)
-                logger.error(vulnerability_dict)
-
-
-            indicator = None
-            relationship = None
-            if indicator_dict:
-                try:
-                    #logger.info(f"Indicator => {indicator_dict}")
-                    indicator = Indicator(**indicator_dict)
-                    config.fs.add(indicator)
-                    relationship = Relationship(
-                        id="relationship--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
-                        created=vulnerability["created"],
-                        created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
-                        modified=vulnerability["modified"],
-                        relationship_type="detects",
-                        source_ref=indicator,
-                        target_ref=vulnerability,
-                        object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF] + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
-                        external_references= [
-                            {
-                                "source_name": "cve",
-                                "external_id": cve.get("id"),
-                                "url": "https://nvd.nist.gov/vuln/detail/{}".format(cve.get('id'))
-                            }
-                        ]
-                    )
-                    config.fs.add(relationship)
-                except Exception as e:
-                    logger.error(f"Indicator with issue -> CVE => {cve.get('id')}, Error: {str(e)}, Indicator Dict: {indicator_dict}")
-
-            if cve.get("cisaVulnerabilityName"):
-                report = Report(**{
-                    "id": "report--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
-                    "created_by_ref": config.CVE2STIX_IDENTITY_REF.get("id"),
-                    "created": datetime.strptime(
-                        cve["published"], "%Y-%m-%dT%H:%M:%S.%f"
-                    ),
-                    "modified": datetime.strptime(
-                        cve["lastModified"], "%Y-%m-%dT%H:%M:%S.%f"
-                    ),
-                    "name": "CISA KEV: {}".format(cve.get("cisaVulnerabilityName")),
-                    "description": "{} Action due by: {}".format(cve.get("cisaRequiredAction"),cve.get("cisaActionDue")),
-                    "published": datetime.strptime(cve["published"],"%Y-%m-%dT%H:%M:%S.%f"),
-                    "report_types": ["vulnerability"],
-                    "object_refs": [
-                        "vulnerability--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}")))
-                    ],
-                    "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF] + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
-                    "external_references": [ {
-                        "source_name": "cve",
-                        "external_id": cve.get("id"),
-                        "url": "https://nvd.nist.gov/vuln/detail/{}".format(cve.get('id'))
-                    }
-                    ]
-                })
-                config.fs.add(report)
-            parsed_response +=[
-                vulnerability.serialize()
-            ]
-            if indicator_dict and indicator != None:
-                parsed_response.append(indicator.serialize())
-            if relationship:
-                parsed_response.append(relationship.serialize())
-            if cve.get("cisaVulnerabilityName"):
-                parsed_response.append(report.serialize())
-        except:
-            raise
-
+        vulnerability = parse_cve_vulnerability(cve, config)
+        config.fs.add(vulnerability)
+        config.fs.add(parse_cve_indicator(cve, vulnerability, config))
+        config.fs.add(parse_cve_report(cve, config))
     return parsed_response
