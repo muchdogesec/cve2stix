@@ -80,7 +80,7 @@ class StixStore:
         
         if os.path.isfile(stix_bundle_file) and update == False:
             return None
-
+        logging.info("writing output to: %s", str(stix_bundle_file))
         with open(stix_bundle_file, "w") as f:
             f.write(json.dumps(json.loads(bundle_of_all_objects.serialize()), indent=4))
 
