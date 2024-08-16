@@ -2,6 +2,7 @@ import logging, os
 from celery import Celery
 from celery.signals import setup_logging  # noqa
 from .stix_store import StixStore
+from stix2.datastore.filters import Filter
 from .config import Config
 from .helper import delete_subfolders, append_data
 
@@ -47,10 +48,14 @@ def preparing_results(task_results, config, filename=None):
     results = map_identity(config, results)
     results = append_data(results, config.file_system)
 
-    stix_store = StixStore(
-        config.stix2_objects_folder, config.stix2_bundles_folder
-    )
-    stix_store.store_cve_in_bundle(results, filename, update=True)
+    vulnerabilities = config.fs.query([Filter("type", "=", "vulnerability")])
+    if vulnerabilities:
+        stix_store = StixStore(
+            config.stix2_objects_folder, config.stix2_bundles_folder
+        )
+        stix_store.store_cve_in_bundle(results, filename, update=True)
+    else:
+        logging.info("Not writing any file because no output")
     if bool(os.getenv("CENTRAL_CELERY")):
         delete_subfolders(config.stix2_objects_folder)
 
