@@ -1,4 +1,5 @@
 from datetime import datetime
+import re
 import uuid
 import sys
 import json
@@ -44,23 +45,24 @@ sys.setrecursionlimit(10000)
 #    return extensions
 
 
-def parse_cvss_metrics_refs(cve):
-    labels = []
-    cve_id = cve.get('id')
+def parse_cvss_metrics(cve):
+    retval = {}
+    pattern = re.compile(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
     try:
         # labels.extend(dict(source_name=f'cvss_metric-{key}', description=metric) for key, metric in cve.get("metrics").items())
-        for metric_name, metrics in cve.get('metrics', {}).items():
-            container = metrics[0]
-            cvss_data = container.pop('cvssData', {})
-            cvss_data.update(container)
+        for metrics in cve.get('metrics', {}).values():
+            cvss_data = metrics[0]
+            cvss_data.update(cvss_data.pop('cvssData', {}))
+            version = "v"+cvss_data['version'].lower().replace('.', "_")
+            metric = retval[version] = {}
             for cvss_key in ["exploitabilityScore", "impactScore", "vectorString", "baseScore", "baseSeverity"]:
                 if cvss_value := cvss_data.get(cvss_key):
-                    labels.append(dict(source_name=f"{metric_name}-{cvss_key}", description=cvss_value, url=f"https://nvd.nist.gov/vuln/detail/{cve_id}"))
+                    cvss_key = pattern.sub('_', cvss_key).lower()
+                    metric[cvss_key] = cvss_value
             # break # only record first one
     except Exception as e:
         logger.error(e)
-        return labels
-    return labels
+    return retval
 
 
 def external_reference(cve):
@@ -156,8 +158,8 @@ def parse_cve_vulnerability(cve, config) -> Vulnerability:
                 }
             ]
             + external_reference(cve)
-            + parse_cvss_metrics_refs(cve)
         ),
+        "cvss_metrics": parse_cvss_metrics(cve),
         "extensions": {
             "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
                 "extension_type": "toplevel-property-extension"
