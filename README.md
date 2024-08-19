@@ -1069,7 +1069,7 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
 }
 ```
 
-### Report SDOs
+### Sightings SROs
 
 Some Vulnerabilities contain information related to [CISA Known Exploited Vulnerabilities](https://nvd.nist.gov/general/news/cisa-exploit-catalog), e.g. `CVE-2022-29303`
 
@@ -1095,23 +1095,18 @@ Some Vulnerabilities contain information related to [CISA Known Exploited Vulner
                 "cisaVulnerabilityName": "SolarView Compact Command Injection Vulnerability",
 ```
 
-These are modelled as Report SDOs as follows;
+These are modelled as Sighting SROs as follows;
 
 ```json
 {
-    "type": "report",
+    "type": "sighting",
     "spec_version": "2.1",
-    "id": "report--<VULNERABILITY SDO ID>",
+    "id": "sighting--<VULNERABILITY SDO ID>",
     "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
-    "name": "CISA KEV: <cisaVulnerabilityName>",
-    "description": "<cisaRequiredAction> Action due by: <cisaActionDue>",
-    "published": "<cisaExploitAdd>",
-    "report_types": [
-    	"vulnerability"
-    ],
-    "object_refs": [
+    "description": "CISA KEV: <cisaVulnerabilityName>\n\n <cisaRequiredAction>\n\n Action due by: <cisaActionDue>",
+    "sighting_of_ref": [
         "vulnerability--<CVE ID>"
     ],
     "external_references": [
