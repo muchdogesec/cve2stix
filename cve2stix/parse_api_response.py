@@ -11,7 +11,7 @@ from .config import Config
 from .helper import cleanup
 from .loggings import logger
 from .cve import CVE
-from .utils import fetch_url
+from .utils import fetch_url, unescape_cpe_string
 
 
 sys.setrecursionlimit(10000)
@@ -99,11 +99,11 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations, config: Config):
             for cpe in match_data.get("matches", []):
                 cpe_name = cpe["cpeName"]
                 cpe_names.append(cpe_name)
-                match_strings.append(f"software:cpe='{cpe_name}'")
+                match_strings.append(f"software:cpe='{unescape_cpe_string(cpe_name)}'")
                 cpe_name_ids.append(cpe["cpeNameId"])
             if not match_strings:
                 cpe_name = match_data['criteria']
-                match_strings.append(f"software:cpe='{cpe_name}'")
+                match_strings.append(f"software:cpe='{unescape_cpe_string(cpe_name)}'")
                 cpe_names = [cpe_name]
             criteria_id_map[match_data["matchCriteriaId"]] = "(" + JOINER.join(match_strings) + ")", cpe_names
             cpe_names_all.extend(cpe_names)
