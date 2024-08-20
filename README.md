@@ -179,12 +179,12 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "extension_type": "toplevel-property-extension"
         }
     },
-    "epss": {
+    "x_epss": {
         "date": "<VALUE>",
         "percentile": "<VALUE>",
         "score": "<VALUE>"
     },
-    "cvss": {
+    "x_cvss": {
         "v3_1": {
             "baseScore": "<VALUE TYPE = PRIMARY>",
             "baseSeverity": "<VALUE TYPE = PRIMARY>",
@@ -277,7 +277,7 @@ Here is the structure of the Indicator SDO and how cve2stix populates it;
             "extension_type": "toplevel-property-extension"
         }
     },
-    "vulnerable_cpes": [
+    "x_vulnerable_cpes": [
         "<VULNERABLE CPE STRINGS IN PATTERN>"
     ]
 }
