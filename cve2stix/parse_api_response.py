@@ -159,7 +159,7 @@ def parse_cve_vulnerability(cve, config) -> Vulnerability:
             ]
             + external_reference(cve)
         ),
-        "cvss_metrics": parse_cvss_metrics(cve),
+        "x_cvss": parse_cvss_metrics(cve),
         "extensions": {
             "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
                 "extension_type": "toplevel-property-extension"
@@ -203,7 +203,7 @@ def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) 
                 "extension_type": "toplevel-property-extension"
             }
         },
-        "vulnerable_cpes": vulnerable_cpe_names,
+        "x_vulnerable_cpes": vulnerable_cpe_names,
         "external_references": cleanup([
             {
                 "source_name": "cve",
