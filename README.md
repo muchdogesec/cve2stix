@@ -277,12 +277,20 @@ Here is the structure of the Indicator SDO and how cve2stix populates it;
             "extension_type": "toplevel-property-extension"
         }
     },
-    "x_vulnerable_cpes": [
-        {
-            "criteria": "<vulnerabilities.cve.configurations.nodes.cpeMatch.criteria (where vulnerable = true>",
-            "matchCriteriaId": "<vulnerabilities.cve.configurations.nodes.cpeMatch.matchCriteriaId (where vulnerable = true>"
-        }
-    ]
+    "x_cpes": {
+        "not_vulnerable": [
+            {
+                "criteria": "<vulnerabilities.cve.configurations.nodes.cpeMatch.criteria (where vulnerable = true>",
+                "matchCriteriaId": "<vulnerabilities.cve.configurations.nodes.cpeMatch.matchCriteriaId (where vulnerable = true>"
+            }
+        ],
+        "vulnerable": [
+            {
+                "criteria": "<vulnerabilities.cve.configurations.nodes.cpeMatch.criteria (where vulnerable = false>",
+                "matchCriteriaId": "<vulnerabilities.cve.configurations.nodes.cpeMatch.matchCriteriaId (where vulnerable = false>"
+            }
+        ]
+    }
 }
 ```
 
