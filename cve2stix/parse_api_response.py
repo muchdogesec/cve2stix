@@ -244,10 +244,7 @@ def parse_cve_sighting(cve: dict, vulnerability: Vulnerability, config: Config):
             created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
             created=vulnerability.created,
             modified=vulnerability.modified,
-            name="CISA KEV: {}".format(cve.get("cisaVulnerabilityName")),
-            description="{} Action due by: {}".format(
-                cve.get("cisaRequiredAction"), cve.get("cisaActionDue")
-            ),
+            description="CISA KEV: {cisaVulnerabilityName}\n\n {cisaRequiredAction}\n\n Action due by: {cisaActionDue}".format_map(cve),
             object_marking_refs=vulnerability.object_marking_refs,
             external_references=[
                 {
