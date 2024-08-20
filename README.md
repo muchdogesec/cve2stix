@@ -168,95 +168,53 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "source_name": "<vulnerabilities.cve.references.source.[n]>",
             "url": "<vulnerabilities.cve.references.url.[n]>",
             "description": "<vulnerabilities.cve.references.tags.[n], vulnerabilities.cve.references.tags.[n]>"
-        },
-        {
-            "source_name": "cvssMetricV2-vectorString",
-            "description": "<cvssMetricV2-vectorString (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV2-exploitabilityScore",
-            "description": " <cvssMetricV2-exploitabilityScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV2-impactScore",
-            "description": "<cvssMetricV2-impactScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV2-baseScore",
-            "description": "<cvssMetricV2-baseScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV2-baseSeverity",
-            "description": "<cvssMetricV2-baseSeverity (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV30-vectorString",
-            "description": "<cvssMetricV30-vectorString (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV30-exploitabilityScore",
-            "description": " <cvssMetricV30-exploitabilityScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV30-impactScore",
-            "description": "<cvssMetricV30-impactScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV30-baseScore",
-            "description": "<cvssMetricV30-baseScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV30-baseSeverity",
-            "description": "<cvssMetricV30-baseSeverity (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV31-vectorString",
-            "description": "<cvssMetricV31-vectorString (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV31-exploitabilityScore",
-            "description": " <cvssMetricV31-exploitabilityScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV31-impactScore",
-            "description": "<cvssMetricV31-impactScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         }
-        {
-            "source_name": "cvssMetricV31-baseScore",
-            "description": "<cvssMetricV31-baseScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV31-baseSeverity",
-            "description": "<cvssMetricV31-baseSeverity (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        }
-],
+    ],
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
         "<IMPORTED MARKING DEFINTION OBJECT>"
-    ]
+    ],
+    "extensions": {
+        "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
+            "extension_type": "toplevel-property-extension"
+        }
+    },
+    "epss": {
+        "date": "<VALUE>",
+        "percentile": "<VALUE>",
+        "score": "<VALUE>"
+    },
+    "cvss": {
+        "v3_1": {
+            "baseScore": "<VALUE TYPE = PRIMARY>",
+            "baseSeverity": "<VALUE TYPE = PRIMARY>",
+            "exploitabilityScore":"<VALUE TYPE = PRIMARY>",
+            "impactScore": "<VALUE TYPE = PRIMARY>",
+            "vectorString": "<VALUE TYPE = PRIMARY>"
+        }
+    }
 }
 ```
 
-Note, due to CVSS scoring changes, not all CVEs have all versions of CVSS Scoring. e.g. very old CVEs (pre-2020 ish) often only have CVSS v2 scores.
+Note, due to CVSS scoring changes, not all CVEs have all versions of CVSS Scoring. e.g. very old CVEs (pre-2020 ish) often only have CVSS v2 scores. This is reflected in the object keys (e.g. `3_1` = CVSS 3.1).
+
+EPSS data is downloaded at script runtime using the endpoint
+
+```shell
+GET https://api.first.org/data/v1/epss?cve=CVE-XXXX-XXXX
+```
+
+Note, EPSS data will only be updated when NVD update a CVE and it triggers cve2stix to create an updated version.
 
 To generate the id of the object, a UUIDv5 is generated using the namespace `562918ee-d5da-5579-b6a1-fae50cc6bad3` and the `CVE ID`
 
 e.g `CVE-2019-18939` = `37f8739d-1702-5e39-bc7e-d0710e06487a` = `vulnerability--37f8739d-1702-5e39-bc7e-d0710e06487a`
+
+As we are using custom properties, we define them using an extension defintion;
+
+https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-scoring.json
+
+This extension definition is imported and stored in each bundle generated.
 
 #### A note on rejected CVEs
 
@@ -313,6 +271,14 @@ Here is the structure of the Indicator SDO and how cve2stix populates it;
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
         "<IMPORTED MARKING DEFINTION OBJECT>"
+    ],
+    "extensions": {
+        "extension-definition--ad995824-2901-5f6e-890b-561130a239d4": {
+            "extension_type": "toplevel-property-extension"
+        }
+    },
+    "vulnerable_cpes": [
+        "<VULNERABLE CPE STRINGS IN PATTERN>"
     ]
 }
 ```
@@ -320,6 +286,10 @@ Here is the structure of the Indicator SDO and how cve2stix populates it;
 Note, the UUID of the Indicator is the same as the Vulnerability for easier identification.
 
 Note, a CVE can have zero or more match patterns. In cve2stix a Vulnerability SDO only ever has one Indicator SDO linked to it. In this case each match pattern is joined using an `OR` statement in the pattern field.
+
+As we are using custom properties, we define them using an extension defintion;
+
+https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/indicator-vulnerable-cpes.json
 
 Let me demonstrate using the examples of varying complexity from the last post...
 
@@ -380,6 +350,10 @@ Content inside a node is captured in parenthesis. For example, the 4 nodes for C
 ```
 
 Node groups are always joined with an `OR` operator.
+
+**Vulnerable CPEs**
+
+Each `cpeMatch` contains a boolean `vulnerable` property. This is important as the generated pattern might contain CPEs not vulnerable. e.g. Microsoft Word is vulnerable when running on Windows (which is not vulnerable to the CVE). We track this data in a custom `vulnerable_cpe` property in the resulting Indicator to ensure readers can pick out vulnerable CPEs in a pattern.
 
 #### Simple Relationships
 
