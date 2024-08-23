@@ -115,8 +115,6 @@ celery -A cve2stix.celery worker --loglevel=info --purge
 
 ## Mapping information
 
-BEFORE CONTINUING: [I STRONGLY recommend you read our blog on CVE/CPE API responses](https://www.dogesec.com/blog/converting_cve_cpe_to_stix_objects/), and the logic to interpret them. The blog can be found here. It is also linked at the bottom of this readme. This code is built around that logic.
-
 The structure of the STIX objects on a graph looks as follows:
 
 https://miro.com/app/board/uXjVK0iYlTw=/
@@ -220,7 +218,7 @@ When a CVE is revoked, the `vulnStatus` becomes `REJECT` in an update. In which 
 
 The CVE Vulnerability Object (which defines what CPE is actually vulnerable can be thought of like a description of the CVE, cve2stix also uses the [STIX 2.1 Indicator SDO](https://docs.oasis-open.org/cti/stix/v2.1/csprd01/stix-v2.1-csprd01.html#_Toc16070633) to provide a logical pattern to describe the products (and configorations) the CVE affects.
 
-STIX 2.1 Indicator Objects contain [STIX Patterns](https://www.signalscorps.com/blog/2021/oasis-stix-2_1-103-patterns/) that can be used to describe the CPE configuration logic defined in the CVE.
+STIX 2.1 Indicator Objects contain STIX Patterns that can be used to describe the CPE configuration logic defined in the CVE.
 
 The `pattern` object inside an Indicator is always constructed from [STIX Software SCOs](https://docs.oasis-open.org/cti/stix/v2.1/csprd01/stix-v2.1-csprd01.html#_Toc16070740) CPE property (`software.cpe`.
 
