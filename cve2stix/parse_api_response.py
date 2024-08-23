@@ -79,27 +79,9 @@ def parse_other_references(cve):
 def build_patterns_for_cve(cve_id: str, pattern_configurations, config: Config):
     patterns = []
     vulnerable_cpe_names = []
+    non_vulnerable_cpes = []
     cpe_names_all = []
-    cpe_name_ids = []
-    criteria_id_map : dict[str, list] = {}
     JOINER = " OR "
-    def parse_into(response: dict, config):
-        for match_data in response.get("matchStrings", []):
-            match_data = match_data["matchString"]
-            match_strings = []
-            cpe_names = []
-            for cpe in match_data.get("matches", []):
-                cpe_name = cpe["cpeName"]
-                cpe_names.append(cpe_name)
-                match_strings.append(f"software:cpe='{unescape_cpe_string(cpe_name)}'")
-                cpe_name_ids.append(cpe["cpeNameId"])
-            if not match_strings:
-                cpe_name = match_data['criteria']
-                match_strings.append(f"software:cpe='{unescape_cpe_string(cpe_name)}'")
-                cpe_names = [cpe_name]
-            criteria_id_map[match_data["matchCriteriaId"]] = "(" + JOINER.join(match_strings) + ")", cpe_names
-            cpe_names_all.extend(cpe_names)
-    fetch_url(config.cpematch_api_endpoint+cve_id, config, parse_into)
 
     for pconfig in pattern_configurations:
         pconfig_operator = " {} " .format(pconfig.get("operator", JOINER).strip())
@@ -108,14 +90,16 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations, config: Config):
             node_operator = " {} " .format(node.get("operator", JOINER).strip())
             node_matches = []
             for match in node.get("cpeMatch", []):
-                pattern, cpe_names = criteria_id_map[match['matchCriteriaId']]
-                node_matches.append(pattern)
+                node_matches.append(f"software:cpe='{unescape_cpe_string(match['criteria'])}'")
+                cpe_match = dict(criteria=match['criteria'], matchCriteriaId=match['matchCriteriaId'])
                 if match.get('vulnerable'):
-                    vulnerable_cpe_names.extend(cpe_names)
+                    vulnerable_cpe_names.append(cpe_match)
+                else:
+                    non_vulnerable_cpes.append(cpe_match)
             node_patterns.append("[{}]".format(node_operator.join(node_matches)))
             
         patterns.append("({})".format(pconfig_operator.join(node_patterns)))
-    return vulnerable_cpe_names, JOINER.join(patterns), cpe_names_all
+    return dict(not_vulnerable=non_vulnerable_cpes, vulnerable=vulnerable_cpe_names), JOINER.join(patterns), cpe_names_all
 
 
 def get_description(cve):
@@ -172,7 +156,7 @@ def parse_cve_vulnerability(cve, config: Config) -> Vulnerability:
 def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) -> tuple[Indicator, Relationship]|list[Never]:
     if not cve.get("configurations"):
         return []
-    vulnerable_cpe_names, pattern_so_far, cpeIds = build_patterns_for_cve(cve["id"], cve.get("configurations", []), config)
+    cpe_names, pattern_so_far, cpeIds = build_patterns_for_cve(cve["id"], cve.get("configurations", []), config)
 
     indicator_dict = {
         "id": "indicator--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
@@ -191,7 +175,7 @@ def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) 
                 "extension_type": "toplevel-property-extension"
             }
         },
-        "x_vulnerable_cpes": vulnerable_cpe_names,
+        "x_cpes": cpe_names,
         "external_references": cleanup([
             {
                 "source_name": "cve",
