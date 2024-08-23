@@ -16,33 +16,25 @@ from .utils import fetch_url, unescape_cpe_string
 
 sys.setrecursionlimit(10000)
 
-#def get_epss_refs(epss, cve):
-#    try:
-#        query = f"{epss}{cve}"
-#        response = requests.get(query)
-#        #logger.info(f"Status Code => {response.status_code}")
-#        if response.status_code != 200:
-#            logger.warning("Got response status code %d.", response.status_code)
-#            raise requests.ConnectionError
-#
-#
-#
-#   except requests.ConnectionError as ex:
-#        logger.error(ex)
-#        raise
-#
-#    data = response.json()
-#    extensions = []
-#    if epss_data := data.get('data'):
-#        for key, source_name in [('epss', 'epssScore'), ('percentile', 'epssPercentile'), ('date', 'epssDate')]:
-#            extension = {
-#                "source_name": source_name,
-#                "url": f"https://api.first.org/data/v1/epss?cve={cve}",
-#                "description": epss_data[0].get(key)
-#            }
-#            extensions.append(extension)
-#
-#    return extensions
+def retrieve_epss_metrics(epss_url, cve_id):
+    try:
+       query = f"{epss_url}?cve={cve_id}"
+       response = requests.get(query)
+       #logger.info(f"Status Code => {response.status_code}")
+       if response.status_code != 200:
+           logger.warning("Got response status code %d.", response.status_code)
+           raise requests.ConnectionError
+
+    except requests.ConnectionError as ex:
+       logger.error(ex)
+       raise
+
+    data = response.json()
+    extensions = {}
+    if epss_data := data.get('data'):
+        for key, source_name in [('epss', 'score'), ('percentile', 'percentile'), ('date', 'date')]:
+            extensions[source_name] = epss_data[0].get(key)
+    return extensions
 
 
 def parse_cvss_metrics(cve):
@@ -65,7 +57,7 @@ def parse_cvss_metrics(cve):
     return retval
 
 
-def external_reference(cve):
+def parse_other_references(cve):
     references = []
     for weakness in cve.get("weaknesses", []):
         if weakness.get("description")[0].get("value")!="NVD-CWE-Other":
@@ -139,7 +131,8 @@ def get_cve_tags(cve):
     return tags
 
 
-def parse_cve_vulnerability(cve, config) -> Vulnerability:
+def parse_cve_vulnerability(cve, config: Config) -> Vulnerability:
+    cve_id = cve["id"]
     vulnerability_dict = {
         "id": "vulnerability--{}".format(
             str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))
@@ -154,12 +147,13 @@ def parse_cve_vulnerability(cve, config) -> Vulnerability:
                 {
                     "source_name": "cve",
                     "external_id": cve["id"],
-                    "url": "https://nvd.nist.gov/vuln/detail/" + cve["id"],
+                    "url": "https://nvd.nist.gov/vuln/detail/" + cve_id,
                 }
             ]
-            + external_reference(cve)
+            + parse_other_references(cve)
         ),
         "x_cvss": parse_cvss_metrics(cve),
+        "x_epss": retrieve_epss_metrics(config.epss_endpoint, cve_id),
         "extensions": {
             "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
                 "extension_type": "toplevel-property-extension"
@@ -183,20 +177,14 @@ def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) 
     indicator_dict = {
         "id": "indicator--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
         "created_by_ref": config.CVE2STIX_IDENTITY_REF.get("id"),
-        "created": datetime.strptime(
-            cve["published"], "%Y-%m-%dT%H:%M:%S.%f"
-        ),
-        "modified": datetime.strptime(
-            cve["lastModified"], "%Y-%m-%dT%H:%M:%S.%f"
-        ),
+        "created": vulnerability.created,
+        "modified": vulnerability.modified,
         "indicator_types": ["compromised"],
         "name": cve["id"],
-        "description": cve["descriptions"][0]["value"],
+        "description": vulnerability.description,
         "pattern_type": "stix",
         "pattern": pattern_so_far,
-        "valid_from": datetime.strptime(
-            cve["published"], "%Y-%m-%dT%H:%M:%S.%f"
-        ),
+        "valid_from": vulnerability.created,
         "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF]+[config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
         "extensions":{
             "extension-definition--ad995824-2901-5f6e-890b-561130a239d4": {
@@ -213,7 +201,7 @@ def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) 
 
         ])
     }
-
+    
     indicator = Indicator(**indicator_dict)
     relationship = Relationship(
         id="relationship--{}".format(str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))),
