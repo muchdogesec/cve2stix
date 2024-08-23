@@ -208,6 +208,7 @@ def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) 
         created=vulnerability["created"],
         created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
         modified=vulnerability["modified"],
+        description=f"The Indicator contains a pattern that detects {indicator.name}",
         relationship_type="detects",
         source_ref=indicator,
         target_ref=vulnerability,
