@@ -2,12 +2,6 @@
 
 A command line tool that turns NVD CVE records into STIX 2.1 Objects.
 
-## Before you get started
-
-If you do not want to backfill, maintain, or support your own CVE STIX objects check out CTI Butler which provides a fully manage database of these objects and more!
-
-https://www.ctibutler.com/
-
 ## Overview
 
 > The mission of the CVE® Program is to identify, define, and catalog publicly disclosed cybersecurity vulnerabilities. There is one CVE Record for each vulnerability in the catalog. The vulnerabilities are discovered then assigned and published by organizations from around the world that have partnered with the CVE Program. Partners publish CVE Records to communicate consistent descriptions of vulnerabilities. Information technology and cybersecurity professionals use CVE Records to ensure they are discussing the same issue, and to coordinate their efforts to prioritize and address the vulnerabilities.
