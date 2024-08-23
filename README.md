@@ -909,6 +909,7 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
     "relationship_type": "detects",
     "source_ref": "indicator--<INDICATOR STIX OBJECT>",
     "target_ref": "vulnerability--<VULNERABILITY STIX OBJECT>",
+    "description": "The Indicator contains a pattern that detects <cve.id>",
     "external_references": [
         {
             "source_name": "cve",
