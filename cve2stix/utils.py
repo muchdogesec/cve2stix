@@ -1,3 +1,4 @@
+import re
 from .loggings import logger
 from urllib.parse import parse_qs, urlparse, urlunparse, parse_qsl, urlencode
 import math
@@ -48,3 +49,7 @@ def fetch_url(url, config, callback):
         backoff_time = 10
     return all_responses_content
 
+
+pattern = re.compile(r'\\([^a-z0-9_\.\-\?\*])')
+def unescape_cpe_string(cpe_string):
+    return pattern.sub((lambda m: m.group(1)), cpe_string)

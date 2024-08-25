@@ -2,12 +2,6 @@
 
 A command line tool that turns NVD CVE records into STIX 2.1 Objects.
 
-## Before you get started
-
-If you do not want to backfill, maintain, or support your own CVE STIX objects check out CTI Butler which provides a fully manage database of these objects and more!
-
-https://www.ctibutler.com/
-
 ## Overview
 
 > The mission of the CVE® Program is to identify, define, and catalog publicly disclosed cybersecurity vulnerabilities. There is one CVE Record for each vulnerability in the catalog. The vulnerabilities are discovered then assigned and published by organizations from around the world that have partnered with the CVE Program. Partners publish CVE Records to communicate consistent descriptions of vulnerabilities. Information technology and cybersecurity professionals use CVE Records to ensure they are discussing the same issue, and to coordinate their efforts to prioritize and address the vulnerabilities.
@@ -121,8 +115,6 @@ celery -A cve2stix.celery worker --loglevel=info --purge
 
 ## Mapping information
 
-BEFORE CONTINUING: [I STRONGLY recommend you read our blog on CVE/CPE API responses](https://www.dogesec.com/blog/converting_cve_cpe_to_stix_objects/), and the logic to interpret them. The blog can be found here. It is also linked at the bottom of this readme. This code is built around that logic.
-
 The structure of the STIX objects on a graph looks as follows:
 
 https://miro.com/app/board/uXjVK0iYlTw=/
@@ -168,95 +160,53 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "source_name": "<vulnerabilities.cve.references.source.[n]>",
             "url": "<vulnerabilities.cve.references.url.[n]>",
             "description": "<vulnerabilities.cve.references.tags.[n], vulnerabilities.cve.references.tags.[n]>"
-        },
-        {
-            "source_name": "cvssMetricV2-vectorString",
-            "description": "<cvssMetricV2-vectorString (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV2-exploitabilityScore",
-            "description": " <cvssMetricV2-exploitabilityScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV2-impactScore",
-            "description": "<cvssMetricV2-impactScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV2-baseScore",
-            "description": "<cvssMetricV2-baseScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV2-baseSeverity",
-            "description": "<cvssMetricV2-baseSeverity (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV30-vectorString",
-            "description": "<cvssMetricV30-vectorString (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV30-exploitabilityScore",
-            "description": " <cvssMetricV30-exploitabilityScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV30-impactScore",
-            "description": "<cvssMetricV30-impactScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV30-baseScore",
-            "description": "<cvssMetricV30-baseScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV30-baseSeverity",
-            "description": "<cvssMetricV30-baseSeverity (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV31-vectorString",
-            "description": "<cvssMetricV31-vectorString (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV31-exploitabilityScore",
-            "description": " <cvssMetricV31-exploitabilityScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV31-impactScore",
-            "description": "<cvssMetricV31-impactScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
         }
-        {
-            "source_name": "cvssMetricV31-baseScore",
-            "description": "<cvssMetricV31-baseScore (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        },
-        {
-            "source_name": "cvssMetricV31-baseSeverity",
-            "description": "<cvssMetricV31-baseSeverity (for type=primary)>",
-            "url": "https://nvd.nist.gov/vuln/detail/<CVE ID>"
-        }
-],
+    ],
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
         "<IMPORTED MARKING DEFINTION OBJECT>"
-    ]
+    ],
+    "extensions": {
+        "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
+            "extension_type": "toplevel-property-extension"
+        }
+    },
+    "x_epss": {
+        "date": "<VALUE>",
+        "percentile": "<VALUE>",
+        "score": "<VALUE>"
+    },
+    "x_cvss": {
+        "v3_1": {
+            "baseScore": "<VALUE TYPE = PRIMARY>",
+            "baseSeverity": "<VALUE TYPE = PRIMARY>",
+            "exploitabilityScore":"<VALUE TYPE = PRIMARY>",
+            "impactScore": "<VALUE TYPE = PRIMARY>",
+            "vectorString": "<VALUE TYPE = PRIMARY>"
+        }
+    }
 }
 ```
 
-Note, due to CVSS scoring changes, not all CVEs have all versions of CVSS Scoring. e.g. very old CVEs (pre-2020 ish) often only have CVSS v2 scores.
+Note, due to CVSS scoring changes, not all CVEs have all versions of CVSS Scoring. e.g. very old CVEs (pre-2020 ish) often only have CVSS v2 scores. This is reflected in the object keys (e.g. `3_1` = CVSS 3.1).
+
+EPSS data is downloaded at script runtime using the endpoint
+
+```shell
+GET https://api.first.org/data/v1/epss?cve=CVE-XXXX-XXXX
+```
+
+Note, EPSS data will only be updated when NVD update a CVE and it triggers cve2stix to create an updated version.
 
 To generate the id of the object, a UUIDv5 is generated using the namespace `562918ee-d5da-5579-b6a1-fae50cc6bad3` and the `CVE ID`
 
 e.g `CVE-2019-18939` = `37f8739d-1702-5e39-bc7e-d0710e06487a` = `vulnerability--37f8739d-1702-5e39-bc7e-d0710e06487a`
+
+As we are using custom properties, we define them using an extension defintion;
+
+https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-scoring.json
+
+This extension definition is imported and stored in each bundle generated.
 
 #### A note on rejected CVEs
 
@@ -268,7 +218,7 @@ When a CVE is revoked, the `vulnStatus` becomes `REJECT` in an update. In which 
 
 The CVE Vulnerability Object (which defines what CPE is actually vulnerable can be thought of like a description of the CVE, cve2stix also uses the [STIX 2.1 Indicator SDO](https://docs.oasis-open.org/cti/stix/v2.1/csprd01/stix-v2.1-csprd01.html#_Toc16070633) to provide a logical pattern to describe the products (and configorations) the CVE affects.
 
-STIX 2.1 Indicator Objects contain [STIX Patterns](https://www.signalscorps.com/blog/2021/oasis-stix-2_1-103-patterns/) that can be used to describe the CPE configuration logic defined in the CVE.
+STIX 2.1 Indicator Objects contain STIX Patterns that can be used to describe the CPE configuration logic defined in the CVE.
 
 The `pattern` object inside an Indicator is always constructed from [STIX Software SCOs](https://docs.oasis-open.org/cti/stix/v2.1/csprd01/stix-v2.1-csprd01.html#_Toc16070740) CPE property (`software.cpe`.
 
@@ -313,7 +263,26 @@ Here is the structure of the Indicator SDO and how cve2stix populates it;
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
         "<IMPORTED MARKING DEFINTION OBJECT>"
-    ]
+    ],
+    "extensions": {
+        "extension-definition--ad995824-2901-5f6e-890b-561130a239d4": {
+            "extension_type": "toplevel-property-extension"
+        }
+    },
+    "x_cpes": {
+        "not_vulnerable": [
+            {
+                "criteria": "<vulnerabilities.cve.configurations.nodes.cpeMatch.criteria (where vulnerable = true>",
+                "matchCriteriaId": "<vulnerabilities.cve.configurations.nodes.cpeMatch.matchCriteriaId (where vulnerable = true>"
+            }
+        ],
+        "vulnerable": [
+            {
+                "criteria": "<vulnerabilities.cve.configurations.nodes.cpeMatch.criteria (where vulnerable = false>",
+                "matchCriteriaId": "<vulnerabilities.cve.configurations.nodes.cpeMatch.matchCriteriaId (where vulnerable = false>"
+            }
+        ]
+    }
 }
 ```
 
@@ -321,71 +290,13 @@ Note, the UUID of the Indicator is the same as the Vulnerability for easier iden
 
 Note, a CVE can have zero or more match patterns. In cve2stix a Vulnerability SDO only ever has one Indicator SDO linked to it. In this case each match pattern is joined using an `OR` statement in the pattern field.
 
-Let me demonstrate using the examples of varying complexity from the last post...
+As we are using custom properties, we define them using an extension defintion;
 
-#### General notes on pattern construction
-
-**Not all CVEs have CPE nodes**
-
-Some CVEs, e.g. CVE-1999-0635, do not contain any CPE node configurations. For these CVEs, only a Vulnerability object will be created (no Indicator object will be generated).
-
-**Match criteria grouping parenthesis**
-
-A `matchCriteriaId` lookup might contain multiple CPEs in its response. All CPEs returned by a single match criteria ID are wrapped in parenthesis.
-
-e.g. `86619D7A-ACB6-489C-9C29-37C6018E5B4B` returns 3 CPEs producing a pattern a group of 3 CPEs in the pattern wrapped in parenthesis, as follows;
-
-```txt
-( (software.cpe = 'cpe:2.3:o:tesla:model_3_firmware:-:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_3_firmware:11.0:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_3_firmware:2022-03-26:*:*:*:*:*:*:*') )
-```
-
-Note, even if only one CPE is returned for a match criteria API, the CPE is still wrapped up in brackets to indicate it is part of a CPE match string group.
-
-**cpeMatch grouping square brackets**
-
-All items inside a cpematch, once match criteria patterns have been formed are captured in square brackets.
-
-For example CVE-2022-29098 contains 5 items in the cpeMatch once analysed against the match criteria API, so only one set of square brackets is used
-
-```txt
-( [ (software.cpe='cpe:2.3:a:dell:powerscale_onefs:9.0.0:*:*:*:*:*:*:*') OR (software.cpe='cpe:2.3:a:dell:powerscale_onefs:9.1.0:*:*:*:*:*:*:*') OR (software.cpe='cpe:2.3:a:dell:powerscale_onefs:9.1.1:*:*:*:*:*:*:*') OR (software.cpe='cpe:2.3:a:dell:powerscale_onefs:9.2.0:*:*:*:*:*:*:*') OR (software.cpe='cpe:2.3:a:dell:powerscale_onefs:9.2.1:*:*:*:*:*:*:*') OR (software.cpe='cpe:2.3:a:dell:powerscale_onefs:9.3.0:*:*:*:*:*:*:*') ] )
-```
-
-However in CVE-2022-27948 there are two cpeMatch entries, which result in two square brackets in the pattern;
-
-```txt
-( [ (software.cpe = 'cpe:2.3:o:tesla:model_3_firmware:-:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_3_firmware:11.0:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_3_firmware:2022-03-26:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:o:tesla:model_s_firmware:-:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_s_firmware:2022-03-26:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:o:tesla:model_x_firmware:-:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_x_firmware:2020-11-23:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_x_firmware:2022-03-26:*:*:*:*:*:*:*') ] AND [ (software.cpe = 'cpe:2.3:h:tesla:model_3:-:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:tesla:model_s:-:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:tesla:model_x:-:*:*:*:*:*:*:*') ] )
-```
-
-**Operators at cpematch level**
-
-A `cpematch` will have a corresponding `operator` property. This defines how all the CPE match entries are joined together. For CVE-2022-27948 above, the operator is an `OR`. However, for CVE-2019-18939 (next example) the operator is an `AND`
-
-**Operators at node level**
-
-In addition to cpematch `operators`, `nodes` can also contain an operator (if the node contains more than one CPE match).
-
-For example, in CVE-2022-27948 above, there are two `cpematch`es in the node. The node operator is an `AND`. Thus the cpematches inside the node are joined with an AND.
-
-**Dealing with node groupings**
-
-In CVEs with advance relationships there might be more than one node reported. Nodes contain one or more cpeMatch groups, as discussed.
-
-For example, CVE-2019-18939 has 4 nodes containing cpematches.
-
-Content inside a node is captured in parenthesis. For example, the 4 nodes for CVE-2019-18939
-
-```txt
-( [ (software.cpe = 'cpe:2.3:a:hm-print_project:hm-print:1.2a:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:h:eq-3:homematic_ccu2:-:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:o:eq-3:homematic_ccu2_firmware:2.47.20:*:*:*:*:*:*:*') ] ) OR ( [ (software.cpe = 'cpe:2.3:a:hm-print_project:hm-print:1.2:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:h:eq-3:homematic_ccu3:-:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:o:eq-3:homematic_ccu3_firmware:3.47.18:*:*:*:*:*:*:*') ] ) OR ( [ (software.cpe = 'cpe:2.3:a:hm-print_project:hm-print:1.2a:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:h:eq-3:homematic_ccu3:-:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:o:eq-3:homematic_ccu3_firmware:3.47.18:*:*:*:*:*:*:*') ] ) OR ( [ (software.cpe = 'cpe:2.3:a:hm-print_project:hm-print:1.2:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:h:eq-3:homematic_ccu2:-:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:o:eq-3:homematic_ccu2_firmware:2.47.20:*:*:*:*:*:*:*') ] )
-```
-
-Node groups are always joined with an `OR` operator.
+https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/indicator-vulnerable-cpes.json
 
 #### Simple Relationships
 
 [CVE-2022-29098 offers a good example of simple relationships](https://nvd.nist.gov/vuln/detail/CVE-2022-29098).
-
-In this case, the 6 configurations variations that lead to matches inside one `nodes`.
 
 ```json
                 "configurations": [
@@ -432,40 +343,12 @@ In this case, the 6 configurations variations that lead to matches inside one `n
                 ],
 ```
 
-1. `cpe:2.3:a:dell:powerscale_onefs:9.0.0:*:*:*:*:*:*:*` (`30687628-5C7F-4BB5-B990-93703294FDF0) OR`,
-2. `cpe:2.3:a:dell:powerscale_onefs:9.1.0:*:*:*:*:*:*:*` (`68291D44-DBE1-4923-A848-04E64288DC23`) `OR`,
-3. `cpe:2.3:a:dell:powerscale_onefs:9.1.1:*:*:*:*:*:*:*` (`DCC55FA4-AD91-4DA6-B60E-A4E34DDAE95A`) `OR`,
-4. `cpe:2.3:a:dell:powerscale_onefs:9.2.0:*:*:*:*:*:*:*` (`B948CD53-3D17-4230-9B77-FCE8E0E548B9`) `OR`,
-5. `cpe:2.3:a:dell:powerscale_onefs:9.2.1:*:*:*:*:*:*:*` (`5AB99A1A-8DD3-4DDE-B70C-0E91D1D3B682`) `OR`,
-6. `cpe:2.3:a:dell:powerscale_onefs:9.3.0:*:*:*:*:*:*:*` (`61F14753-D64C-4E8B-AA94-07E014848B4D`)
-
-Now the match criteria API must be checked for each entry. For example, for `30687628-5C7F-4BB5-B990-93703294FDF0`
-
-Returns;
-
-```json
-    "matchStrings": [
-        {
-            "matchString": {
-                "matchCriteriaId": "30687628-5C7F-4BB5-B990-93703294FDF0",
-                "criteria": "cpe:2.3:a:dell:powerscale_onefs:9.0.0:*:*:*:*:*:*:*",
-                "lastModified": "2022-06-07T14:26:54.180",
-                "cpeLastModified": "2021-04-26T17:43:46.887",
-                "created": "2021-04-26T17:43:45.753",
-                "status": "Active",
-                "matches": [
-                    {
-                        "cpeName": "cpe:2.3:a:dell:powerscale_onefs:9.0.0:*:*:*:*:*:*:*",
-                        "cpeNameId": "2B8F2852-98F4-44E1-BBF2-6597C2481DB1"
-                    }
-                ]
-            }
-        }
-    ]
-}
-```
-
-As you can see only one CPE belongs to this `matchCriteriaId`, so only one CPE will be used for this entry in the pattern. All `matchCriteriaId`'s for this CVE return just one CPE entry, so only that CPE is used in the pattern.
+1. `cpe:2.3:a:dell:powerscale_onefs:9.0.0:*:*:*:*:*:*:*` `OR`,
+2. `cpe:2.3:a:dell:powerscale_onefs:9.1.0:*:*:*:*:*:*:*` `OR`,
+3. `cpe:2.3:a:dell:powerscale_onefs:9.1.1:*:*:*:*:*:*:*` `OR`,
+4. `cpe:2.3:a:dell:powerscale_onefs:9.2.0:*:*:*:*:*:*:*` `OR`,
+5. `cpe:2.3:a:dell:powerscale_onefs:9.2.1:*:*:*:*:*:*:*` `OR`,
+6. `cpe:2.3:a:dell:powerscale_onefs:9.3.0:*:*:*:*:*:*:*`
 
 As such, in this example the `pattern` in the Indicator would be as follow;
 
@@ -478,8 +361,6 @@ The CPE statements are joined by `OR` as this is the top level `operator` in the
 #### Running On/With Relationships
 
 [Let me demonstrate how more complex Relationships are modelled using the example CVE-2022-27948](https://nvd.nist.gov/vuln/detail/CVE-2022-27948).
-
-In total there are 24 possible product combinations that are vulnerable in this CVE (see the last post for an explanation).
 
 ```json
                 "configurations": [
@@ -547,46 +428,6 @@ So in this example I get pattern that will look like;
 ```
 
 Note how the `AND` joins the two square brackets, that's because the top level `operator` in the CVE response shown above is an `AND`. The CPE statements are joined by `OR` as this is the top level `operator` in the API response (of course, in many cases this can be an `AND`).
-
-However, I must also check the `matchCriteriaId` results first. Let me use `86619D7A-ACB6-489C-9C29-37C6018E5B4B` as an example;
-
-```json
-   "matchStrings": [
-        {
-            "matchString": {
-                "matchCriteriaId": "86619D7A-ACB6-489C-9C29-37C6018E5B4B",
-                "criteria": "cpe:2.3:o:tesla:model_3_firmware:*:*:*:*:*:*:*:*",
-                "versionEndIncluding": "2022-03-26",
-                "lastModified": "2022-10-05T14:00:34.840",
-                "cpeLastModified": "2022-10-05T14:00:34.840",
-                "created": "2022-04-04T12:37:32.813",
-                "status": "Active",
-                "matches": [
-                    {
-                        "cpeName": "cpe:2.3:o:tesla:model_3_firmware:-:*:*:*:*:*:*:*",
-                        "cpeNameId": "979F9EB6-C9F6-49EE-9FED-2ED17E400E86"
-                    },
-                    {
-                        "cpeName": "cpe:2.3:o:tesla:model_3_firmware:11.0:*:*:*:*:*:*:*",
-                        "cpeNameId": "62DCA7AD-A796-486F-8FB6-DEACC078D402"
-                    },
-                    {
-                        "cpeName": "cpe:2.3:o:tesla:model_3_firmware:2022-03-26:*:*:*:*:*:*:*",
-                        "cpeNameId": "F010C8B7-83E9-45FB-A5D4-26EDF34EC312"
-                    }
-                ]
-            }
-        }
-    ]
-```
-
-Note, this returns 3 CPEs for the first CPE ID (match criteria) shown in the NVD response. Essentially what this is saying is `cpe:2.3:o:tesla:model_3_firmware:*:*:*:*:*:*:*:*` (`86619D7A-ACB6-489C-9C29-37C6018E5B4B`) actually contains 3 CPEs; `cpe:2.3:o:tesla:model_3_firmware:-:*:*:*:*:*:*:*`, or `cpe:2.3:o:tesla:model_3_firmware:11.0:*:*:*:*:*:*:*` or `cpe:2.3:o:tesla:model_3_firmware:2022-03-26:*:*:*:*:*:*:*`. Note, when multiple values are returned in the match criteria response, they are always joined with an `OR` inside the `pattern`.
-
-Some of the other match criteria IDs also return more than one response. After querying the match criteria APIs, a pattern as follows results;
-
-```json
-    "pattern": "( [ (software.cpe = 'cpe:2.3:o:tesla:model_3_firmware:-:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_3_firmware:11.0:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_3_firmware:2022-03-26:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:o:tesla:model_s_firmware:-:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_s_firmware:2022-03-26:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:o:tesla:model_x_firmware:-:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_x_firmware:2020-11-23:*:*:*:*:*:*:*' OR software.cpe = 'cpe:2.3:o:tesla:model_x_firmware:2022-03-26:*:*:*:*:*:*:*') ] AND [ (software.cpe = 'cpe:2.3:h:tesla:model_3:-:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:tesla:model_s:-:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:tesla:model_x:-:*:*:*:*:*:*:*') ] )",
-```
 
 #### Advanced Relationships
 
@@ -699,7 +540,7 @@ Some of the other match criteria IDs also return more than one response. After q
 
 In this CVE there are four nodes, so this time cve2stix will join the patterns with `OR` statement (because there is no top level operator -- see more advanced relationships for dealing with these).
 
-This gives four patterns (note, all the match criterias return just one result)...
+This gives four patterns...
 
 Pattern one;
 
@@ -958,8 +799,6 @@ Advance relationships are made slightly more complicated. For this I'll use CVE-
 
 See hee how you have a top level `operator` for each node. In this case the `operator` is always `AND`.
 
-The `matchCriteriaId` in all nodes only return one CPE.
-
 Pattern one;
 
 ```json
@@ -1062,6 +901,7 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
     "relationship_type": "detects",
     "source_ref": "indicator--<INDICATOR STIX OBJECT>",
     "target_ref": "vulnerability--<VULNERABILITY STIX OBJECT>",
+    "description": "The Indicator contains a pattern that detects <cve.id>",
     "external_references": [
         {
             "source_name": "cve",
@@ -1076,7 +916,7 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
 }
 ```
 
-### Report SDOs
+### Sightings SROs
 
 Some Vulnerabilities contain information related to [CISA Known Exploited Vulnerabilities](https://nvd.nist.gov/general/news/cisa-exploit-catalog), e.g. `CVE-2022-29303`
 
@@ -1102,23 +942,18 @@ Some Vulnerabilities contain information related to [CISA Known Exploited Vulner
                 "cisaVulnerabilityName": "SolarView Compact Command Injection Vulnerability",
 ```
 
-These are modelled as Report SDOs as follows;
+These are modelled as Sighting SROs as follows;
 
 ```json
 {
-    "type": "report",
+    "type": "sighting",
     "spec_version": "2.1",
-    "id": "report--<VULNERABILITY SDO ID>",
+    "id": "sighting--<VULNERABILITY SDO ID>",
     "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
-    "name": "CISA KEV: <cisaVulnerabilityName>",
-    "description": "<cisaRequiredAction> Action due by: <cisaActionDue>",
-    "published": "<cisaExploitAdd>",
-    "report_types": [
-    	"vulnerability"
-    ],
-    "object_refs": [
+    "description": "CISA KEV: <cisaVulnerabilityName>\n\n <cisaRequiredAction>\n\n Action due by: <cisaActionDue>",
+    "sighting_of_ref": [
         "vulnerability--<CVE ID>"
     ],
     "external_references": [
