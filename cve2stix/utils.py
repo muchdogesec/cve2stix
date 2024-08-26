@@ -50,6 +50,6 @@ def fetch_url(url, config, callback):
     return all_responses_content
 
 
-pattern = re.compile(r'\\([^a-z0-9_\.\-\?\*])')
+pattern = re.compile(r"\\([^a-z0-9_\.\-\?\*'])")
 def unescape_cpe_string(cpe_string):
     return pattern.sub((lambda m: m.group(1)), cpe_string)
