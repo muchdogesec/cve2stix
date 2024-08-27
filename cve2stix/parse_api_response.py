@@ -12,6 +12,7 @@ from .helper import cleanup
 from .loggings import logger
 from .cve import CVE
 from .utils import fetch_url, unescape_cpe_string
+from stix2extensions._extensions import indicator_vulnerable_cpes_ExtensionDefinitionSMO, vulnerability_scoring_ExtensionDefinitionSMO
 
 
 sys.setrecursionlimit(10000)
@@ -139,7 +140,7 @@ def parse_cve_vulnerability(cve, config: Config) -> Vulnerability:
         "x_cvss": parse_cvss_metrics(cve),
         "x_epss": retrieve_epss_metrics(config.epss_endpoint, cve_id),
         "extensions": {
-            "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
+            vulnerability_scoring_ExtensionDefinitionSMO.id: {
                 "extension_type": "toplevel-property-extension"
             }
         },
@@ -171,7 +172,7 @@ def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) 
         "valid_from": vulnerability.created,
         "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF]+[config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
         "extensions":{
-            "extension-definition--ad995824-2901-5f6e-890b-561130a239d4": {
+            indicator_vulnerable_cpes_ExtensionDefinitionSMO.id: {
                 "extension_type": "toplevel-property-extension"
             }
         },
