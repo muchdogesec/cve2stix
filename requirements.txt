@@ -22,3 +22,4 @@ eventlet
 celery==5.3.4
 redis
 flower
+stix2extensions @ https://github.com/muchdogesec/stix2extensions/archive/main.zip

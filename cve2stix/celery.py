@@ -41,11 +41,12 @@ def get_matching_criteria(start):
 
 @app.task()
 def preparing_results(task_results, config, filename=None):
-    from .main import map_marking_definition, map_identity
+    from .main import map_marking_definition, map_identity, map_extensions
     config = Config(**config)
     results = []
     results = map_marking_definition(config, results)
     results = map_identity(config, results)
+    results = map_extensions(config, results)
     results = append_data(results, config.file_system)
 
     vulnerabilities = config.fs.query([Filter("type", "=", "vulnerability")])
