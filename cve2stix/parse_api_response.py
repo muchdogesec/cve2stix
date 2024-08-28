@@ -91,7 +91,7 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations, config: Config):
             node_operator = " {} " .format(node.get("operator", JOINER).strip())
             node_matches = []
             for match in node.get("cpeMatch", []):
-                node_matches.append(f"software:cpe='{unescape_cpe_string(match['criteria'])}'")
+                node_matches.append(f"software:cpe={unescape_cpe_string(match['criteria'])}")
                 cpe_match = dict(criteria=match['criteria'], matchCriteriaId=match['matchCriteriaId'])
                 if match.get('vulnerable'):
                     vulnerable_cpe_names.append(cpe_match)
