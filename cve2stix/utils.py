@@ -26,7 +26,9 @@ def fetch_url(url, config, callback):
         try:
             logger.info(f"Query => {query}")
             response = requests.get(url, query, headers=dict(apiKey=config.nvd_api_key))
-            logger.info(f"Status Code => {response.status_code}")
+            logger.info(f"URL => {response.url}")
+            logger.info(f"HEADERS => {response.request.headers}")
+            logger.info(f"Status Code => {response.status_code} [{response.reason}]")
             if response.status_code != 200:
                 logger.warning("Got response status code %d.", response.status_code)
                 raise requests.ConnectionError
