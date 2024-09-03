@@ -6,7 +6,7 @@ import json
 import time
 import requests
 from stix2 import Vulnerability, Indicator, Relationship, Sighting
-from typing import List, Never
+from typing import List
 from .config import Config
 from .helper import cleanup
 from .loggings import logger
@@ -154,7 +154,7 @@ def parse_cve_vulnerability(cve, config: Config) -> Vulnerability:
     vulnerability = Vulnerability(**vulnerability_dict)
     return vulnerability
 
-def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) -> tuple[Indicator, Relationship]|list[Never]:
+def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) -> tuple[Indicator, Relationship]:
     if not cve.get("configurations"):
         return []
     cpe_names, pattern_so_far, cpeIds = build_patterns_for_cve(cve["id"], cve.get("configurations", []), config)
