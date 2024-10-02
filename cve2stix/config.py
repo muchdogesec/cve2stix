@@ -62,7 +62,7 @@ class Config:
     TLP_CLEAR_MARKING_DEFINITION_REF = "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
     REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
-    REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
+    REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
 
     @property
     def fs(self):
