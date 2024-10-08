@@ -218,8 +218,8 @@ def parse_cve_epss_note(cve: dict, vulnerability: Vulnerability, config: Config)
     content = f"EPSS Score for {cve_id}"
 
     return Note(
-        id="note--{}".format(str(uuid.uuid5(config.namespace, content))),
-        created=vulnerability.created,
+        id=vulnerability['id'].replace("vulnerability", "note"),
+        created=vulnerability['created'],
         modified=datetime.strptime(epss_data["date"], "%Y-%m-%d").date(),
         content=content,
         x_epss=epss_data,
@@ -231,9 +231,9 @@ def parse_cve_epss_note(cve: dict, vulnerability: Vulnerability, config: Config)
                 "extension_type": "toplevel-property-extension"
             }
         },
-        object_marking_refs=vulnerability.object_marking_refs,
-        created_by_ref=vulnerability.created_by_ref,
-        external_references=vulnerability.external_references[:1],
+        object_marking_refs=vulnerability['object_marking_refs'],
+        created_by_ref=vulnerability['created_by_ref'],
+        external_references=vulnerability['external_references'][:1],
 
     )
 
