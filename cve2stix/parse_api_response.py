@@ -58,7 +58,7 @@ def parse_cvss_metrics(cve):
     return retval
 
 
-def parse_other_references(cve):
+def parse_other_references(cve: dict):
     references = []
     for weakness in cve.get("weaknesses", []):
         if weakness.get("description")[0].get("value")!="NVD-CWE-Other":
@@ -73,6 +73,11 @@ def parse_other_references(cve):
             "source_name": reference.get("source"),
             "url": reference.get("url"),
             "description": ",".join(reference.get("tags", []))
+        })
+    for key in ["vulnStatus", "sourceIdentifier"]:
+        references.append({
+            "source_name": key,
+            "description": cve.get(key),
         })
     return references
 
