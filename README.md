@@ -164,6 +164,19 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "source_name": "<vulnerabilities.cve.references.source.[n]>",
             "url": "<vulnerabilities.cve.references.url.[n]>",
             "description": "<vulnerabilities.cve.references.tags.[n], vulnerabilities.cve.references.tags.[n]>"
+        },
+        { 
+            "source_name": "<vulnerabilities.cve.references.source.[n]>",
+            "url": "<vulnerabilities.cve.references.url.[n]>",
+            "description": "<vulnerabilities.cve.references.tags.[n], vulnerabilities.cve.references.tags.[n]>"
+        },
+        {
+            "source_name": "vulnStatus",
+            "description": "<vulnStatus>"
+        },
+        {
+            "source_name": "sourceIdentifier",
+            "description": "<sourceIdentifier>"
         }
     ],
     "object_marking_refs": [
@@ -174,11 +187,6 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
         "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
             "extension_type": "toplevel-property-extension"
         }
-    },
-    "x_epss": {
-        "date": "<VALUE>",
-        "percentile": "<VALUE>",
-        "score": "<VALUE>"
     },
     "x_cvss": {
         "v3_1": {
@@ -193,14 +201,6 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
 ```
 
 Note, due to CVSS scoring changes, not all CVEs have all versions of CVSS Scoring. e.g. very old CVEs (pre-2020 ish) often only have CVSS v2 scores. This is reflected in the object keys (e.g. `3_1` = CVSS 3.1).
-
-EPSS data is downloaded at script runtime using the endpoint
-
-```shell
-GET https://api.first.org/data/v1/epss?cve=CVE-XXXX-XXXX
-```
-
-Note, EPSS data will only be updated when NVD update a CVE and it triggers cve2stix to create an updated version.
 
 To generate the id of the object, a UUIDv5 is generated using the namespace `562918ee-d5da-5579-b6a1-fae50cc6bad3` and the `CVE ID`
 
@@ -217,6 +217,57 @@ This extension definition is imported and stored in each bundle generated.
 Sometime CVEs are revoked for a variety of reasons. See: https://nvd.nist.gov/vuln/vulnerability-status
 
 When a CVE is revoked, the `vulnStatus` becomes `REJECT` in an update. In which case a `revoked` property is included in the Vulnerability SDO with its value set to `true`.
+
+### Note SDO (`note`)
+
+EPSS data estimates the likelihood (probability) that a software vulnerability will be exploited in the wild.
+
+EPSS data is downloaded at script runtime using the endpoint
+
+```shell
+GET https://api.first.org/data/v1/epss?cve=CVE-XXXX-XXXX
+```
+
+And it is recorded as a Note SDO as follows;
+
+```json
+{
+    "type": "note",
+    "spec_version": "2.1",
+    "id": "note--<SAME UUID AS VULNERABILITY>",
+    "created_by_ref": "identity--562918ee-d5da-5579-b6a1-fae50cc6bad3",
+    "created": "<EARLIEST EPSS RECORDED in x_epss>",
+    "modified": "<LATEST EPSS RECORDED in x_epss>",
+    "content": "EPSS Score for <CVE ID>",
+    "object_refs": [
+        "vulnerability--<CVE-vuln-object>"
+    ],
+    "object_marking_refs": [
+        "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
+        "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3"
+    ],
+    "extensions": {
+        "extension-definition--efd26d23-d37d-5cf2-ac95-a101e46ce11d": {
+            "extension_type": "toplevel-property-extension"
+        }
+    },
+    "x_epss": [
+        {
+            "date": "<EPSS DATE>",
+            "percentile": "<EPSS PERCENTILE>",
+            "score": "<EPSS SCORE>"
+        },
+    ]
+}
+```
+
+As we are using custom properties, we define them using an extension defintion;
+
+https://raw.githubusercontent.com/muchdogesec/stix2extensions/refs/heads/main/extension-definitions/properties/note-epss-scoring.json
+
+This extension definition is imported and stored in each bundle generated.
+
+Note, EPSS data will only be updated when NVD update a CVE and it triggers cve2stix to create an updated version. [Use arango_cti_processor in cve-epss mode to trigger these updates on demand](https://github.com/muchdogesec/arango_cti_processor/issues).
 
 ### Indicator SDOs
 
