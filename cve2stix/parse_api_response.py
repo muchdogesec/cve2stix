@@ -5,7 +5,7 @@ import sys
 import json
 import time
 import requests
-from stix2 import Vulnerability, Indicator, Relationship, Sighting
+from stix2 import Vulnerability, Indicator, Relationship, Sighting, Note
 from typing import List
 from .config import Config
 from .helper import cleanup
@@ -58,7 +58,7 @@ def parse_cvss_metrics(cve):
     return retval
 
 
-def parse_other_references(cve):
+def parse_other_references(cve: dict):
     references = []
     for weakness in cve.get("weaknesses", []):
         if weakness.get("description")[0].get("value")!="NVD-CWE-Other":
@@ -73,6 +73,11 @@ def parse_other_references(cve):
             "source_name": reference.get("source"),
             "url": reference.get("url"),
             "description": ",".join(reference.get("tags", []))
+        })
+    for key in ["vulnStatus", "sourceIdentifier"]:
+        references.append({
+            "source_name": key,
+            "description": cve.get(key),
         })
     return references
 
@@ -138,7 +143,6 @@ def parse_cve_vulnerability(cve, config: Config) -> Vulnerability:
             + parse_other_references(cve)
         ),
         "x_cvss": parse_cvss_metrics(cve),
-        "x_epss": retrieve_epss_metrics(config.epss_endpoint, cve_id),
         "extensions": {
             vulnerability_scoring_ExtensionDefinitionSMO.id: {
                 "extension_type": "toplevel-property-extension"
@@ -208,6 +212,35 @@ def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) 
     )
     return [indicator, relationship]
 
+def parse_cve_epss_note(cve: dict, vulnerability: Vulnerability, config: Config):
+    try:
+        cve_id = cve.get('id')
+        epss_data = retrieve_epss_metrics(config.epss_endpoint, cve_id)
+        content = f"EPSS Score for {cve_id}"
+
+        return Note(
+            id=vulnerability['id'].replace("vulnerability", "note"),
+            created=vulnerability['created'],
+            modified=datetime.strptime(epss_data["date"], "%Y-%m-%d").date(),
+            content=content,
+            x_epss=epss_data,
+            object_refs=[
+                vulnerability.id,
+            ],
+            extensions= {
+                "extension-definition--efd26d23-d37d-5cf2-ac95-a101e46ce11d": {
+                    "extension_type": "toplevel-property-extension"
+                }
+            },
+            object_marking_refs=vulnerability['object_marking_refs'],
+            created_by_ref=vulnerability['created_by_ref'],
+            external_references=vulnerability['external_references'][:1],
+
+        )
+    except:
+        return []
+
+
 def parse_cve_sighting(cve: dict, vulnerability: Vulnerability, config: Config):
     if cve.get("cisaVulnerabilityName"):
         return Sighting(
@@ -239,4 +272,5 @@ def parse_cve_api_response(
         config.fs.add(vulnerability)
         config.fs.add(parse_cve_indicator(cve, vulnerability, config))
         config.fs.add(parse_cve_sighting(cve, vulnerability, config))
+        config.fs.add(parse_cve_epss_note(cve, vulnerability, config))
     return parsed_response

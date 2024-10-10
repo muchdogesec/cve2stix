@@ -38,7 +38,7 @@ def map_marking_definition(config, object_list):
 
 def map_extensions(config, object_list):
     logger.info("Adding extensions")
-    extensions = [stix_extensions.indicator_vulnerable_cpes_ExtensionDefinitionSMO, stix_extensions.vulnerability_scoring_ExtensionDefinitionSMO]
+    extensions = [stix_extensions.indicator_vulnerable_cpes_ExtensionDefinitionSMO, stix_extensions.vulnerability_scoring_ExtensionDefinitionSMO, stix_extensions.note_epss_scoring_ExtensionDefinitionSMO]
     object_list.extend(extensions)
     config.fs.add(extensions)
     return object_list
