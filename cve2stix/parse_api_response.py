@@ -7,6 +7,8 @@ import time
 import requests
 from stix2 import Vulnerability, Indicator, Relationship, Sighting, Note
 from typing import List
+
+from cve2stix.epss import EPSSManager
 from .config import Config
 from .helper import cleanup
 from .loggings import logger
@@ -214,14 +216,24 @@ def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) 
 
 def parse_cve_epss_note(cve: dict, vulnerability: Vulnerability, config: Config):
     try:
+        
         cve_id = cve.get('id')
-        epss_data = retrieve_epss_metrics(config.epss_endpoint, cve_id)
+        epss_data = EPSSManager.get_data_for_cve(cve_id)
         content = f"EPSS Score for {cve_id}"
+
+        if epss_data:
+            epss_data = [epss_data]
+        else:
+            epss_data = []
+
+        modified = vulnerability['created']
+        if epss_data:
+            modified = datetime.strptime(epss_data[-1]["date"], "%Y-%m-%d").date()
 
         return Note(
             id=vulnerability['id'].replace("vulnerability", "note"),
             created=vulnerability['created'],
-            modified=datetime.strptime(epss_data["date"], "%Y-%m-%d").date(),
+            modified=modified,
             content=content,
             x_epss=epss_data,
             object_refs=[
