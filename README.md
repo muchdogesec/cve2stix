@@ -225,8 +225,10 @@ EPSS data estimates the likelihood (probability) that a software vulnerability w
 EPSS data is downloaded at script runtime using the endpoint
 
 ```shell
-GET https://api.first.org/data/v1/epss?cve=CVE-XXXX-XXXX
+GET https://epss.cyentia.com/epss_scores-YYYY-MM-DD.csv.gz
 ```
+
+Where `YYYY-MM-DD` is the day the script was run.
 
 And it is recorded as a Note SDO as follows;
 
