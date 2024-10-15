@@ -8,7 +8,7 @@ import requests
 from stix2 import Vulnerability, Indicator, Relationship, Sighting, Note
 from typing import List
 
-from cve2stix.epss import EPSSManager
+from .epss import EPSSManager
 from .config import Config
 from .helper import cleanup
 from .loggings import logger
@@ -50,6 +50,8 @@ def parse_cvss_metrics(cve):
             cvss_data.update(cvss_data.pop('cvssData', {}))
             version = "v"+cvss_data['version'].lower().replace('.', "_")
             metric = retval[version] = {}
+            metric["type"] = cvss_data['type']
+            metric["source"] = cvss_data['source']
             for cvss_key in ["exploitabilityScore", "impactScore", "vectorString", "baseScore", "baseSeverity"]:
                 if cvss_value := cvss_data.get(cvss_key):
                     cvss_key = pattern.sub('_', cvss_key).lower()
