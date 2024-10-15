@@ -190,11 +190,13 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
     },
     "x_cvss": {
         "v3_1": {
-            "baseScore": "<VALUE TYPE = PRIMARY>",
-            "baseSeverity": "<VALUE TYPE = PRIMARY>",
-            "exploitabilityScore":"<VALUE TYPE = PRIMARY>",
-            "impactScore": "<VALUE TYPE = PRIMARY>",
-            "vectorString": "<VALUE TYPE = PRIMARY>"
+            "baseScore": "<VALUE>",
+            "baseSeverity": "<VALUE>",
+            "exploitabilityScore":"<VALUE>",
+            "impactScore": "<VALUE>",
+            "vectorString": "<VALUE>",
+            "source": "<VALUE>",
+            "type": "<VALUE>"
         }
     }
 }
