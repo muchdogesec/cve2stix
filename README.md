@@ -957,7 +957,7 @@ And it is recorded as a Report SDO as follows;
         "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3"
     ],
     "extensions": {
-        "extension-definition--efd26d23-d37d-5cf2-ac95-a101e46ce11d": {
+        "extension-definition--f80cce10-5ac0-58d1-9e7e-b4ed0cc4dbb9": {
             "extension_type": "toplevel-property-extension"
         }
     },
