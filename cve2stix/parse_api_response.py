@@ -5,7 +5,7 @@ import sys
 import json
 import time
 import requests
-from stix2 import Vulnerability, Indicator, Relationship, Sighting, Note
+from stix2 import Vulnerability, Indicator, Relationship, Sighting, Note, Report
 from typing import List
 
 from .epss import EPSSManager
@@ -216,12 +216,12 @@ def parse_cve_indicator(cve:dict, vulnerability: Vulnerability, config: Config) 
     )
     return [indicator, relationship]
 
-def parse_cve_epss_note(cve: dict, vulnerability: Vulnerability, config: Config):
+def parse_cve_epss_report(cve: dict, vulnerability: Vulnerability, config: Config):
     try:
         
         cve_id = cve.get('id')
         epss_data = EPSSManager.get_data_for_cve(cve_id)
-        content = f"EPSS Score for {cve_id}"
+        content = f"EPSS Scores: {cve_id}"
 
         if epss_data:
             epss_data = [epss_data]
@@ -232,10 +232,11 @@ def parse_cve_epss_note(cve: dict, vulnerability: Vulnerability, config: Config)
         if epss_data:
             modified = datetime.strptime(epss_data[-1]["date"], "%Y-%m-%d").date()
 
-        return Note(
-            id=vulnerability['id'].replace("vulnerability", "note"),
-            created=vulnerability['created'],
+        return Report(
+            id=vulnerability['id'].replace("vulnerability", "report"),
+            created=modified,
             modified=modified,
+            published=modified,
             content=content,
             x_epss=epss_data,
             object_refs=[
@@ -256,26 +257,31 @@ def parse_cve_epss_note(cve: dict, vulnerability: Vulnerability, config: Config)
 
 
 def parse_cve_sighting(cve: dict, vulnerability: Vulnerability, config: Config):
-    if cve.get("cisaVulnerabilityName"):
-        return Sighting(
-            id="sighting--{}".format(
-                str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))
-            ),
-            sighting_of_ref=vulnerability.id,
-            created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
+    if not cve.get("cisaVulnerabilityName"):
+        return []
+    return Report(            
+            type="report",
+            spec_version="2.1",
+            created_by_ref="identity--562918ee-d5da-5579-b6a1-fae50cc6bad3",
             created=vulnerability.created,
             modified=vulnerability.modified,
-            description="CISA KEV: {cisaVulnerabilityName}\n\n {cisaRequiredAction}\n\n Action due by: {cisaActionDue}".format_map(cve),
-            object_marking_refs=vulnerability.object_marking_refs,
+            published=vulnerability.created,
+            name=f"CISA KEV: {cve['id']}",
+            description="Name: {cisaVulnerabilityName}\n\nRequired action: {cisaRequiredAction}\n\nAction due by: {cisaActionDue}".format_map(cve),
+            object_refs=[
+                vulnerability.id
+            ],
             external_references=[
                 {
                     "source_name": "cve",
-                    "external_id": cve.get("id"),
-                    "url": "https://nvd.nist.gov/vuln/detail/{}".format(cve.get("id")),
+                    "external_id": cve['id'],
+                    "url": "https://nvd.nist.gov/vuln/detail/" + cve['id']
                 }
             ],
-        )
-    return []
+            object_marking_refs=vulnerability.object_marking_refs,
+    )
+    
+    
 def parse_cve_api_response(
     cve_content, config: Config) -> List[CVE]:
     parsed_response = []
@@ -286,5 +292,5 @@ def parse_cve_api_response(
         config.fs.add(vulnerability)
         config.fs.add(parse_cve_indicator(cve, vulnerability, config))
         config.fs.add(parse_cve_sighting(cve, vulnerability, config))
-        config.fs.add(parse_cve_epss_note(cve, vulnerability, config))
+        config.fs.add(parse_cve_epss_report(cve, vulnerability, config))
     return parsed_response
