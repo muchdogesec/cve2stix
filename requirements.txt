@@ -16,7 +16,7 @@ smmap==5.0.1
 soupsieve==2.5
 stix2==3.0.1
 stix2-patterns==2.0.0
-urllib3==2.0.6
+urllib3==2.2.2
 python-dotenv
 eventlet
 celery==5.3.4
