@@ -22,4 +22,4 @@ eventlet
 celery==5.3.4
 redis
 flower
-https://github.com/muchdogesec/stix2extensions/releases/download/main-2024-11-27-15-30-32/stix2extensions-0.0.2b1-py3-none-any.whl
+https://github.com/muchdogesec/stix2extensions/releases/download/main-2024-11-29-08-23-28/stix2extensions-0.0.2b1-py3-none-any.whl
