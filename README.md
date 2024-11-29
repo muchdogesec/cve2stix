@@ -948,6 +948,7 @@ And it is recorded as a Report SDO as follows;
     "created_by_ref": "identity--562918ee-d5da-5579-b6a1-fae50cc6bad3",
     "created": "<EARLIEST EPSS RECORDED in x_epss>",
     "modified": "<LATEST EPSS RECORDED in x_epss>",
+    "published": "<EARLIEST EPSS RECORDED in x_epss>",
     "name": "EPSS Scores: <CVE ID>",
     "object_refs": [
         "vulnerability--<CVE-vuln-object>"
@@ -1027,6 +1028,7 @@ These are modelled as Report SDOs as follows;
     "created_by_ref": "identity--562918ee-d5da-5579-b6a1-fae50cc6bad3",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
+    "published": "<vulnerabilities.cve.published>",
     "name": "CISA KEV: <CVE ID>",
     "description": "Name: <cisaVulnerabilityName>\n\nRequired action: <cisaRequiredAction>\n\nAction due by: <cisaActionDue>",
     "object_refs": [
