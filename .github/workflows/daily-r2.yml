@@ -1,0 +1,69 @@
+name: R2 Daily Upload
+run-name: ${{ github.actor }} is running cve2stix
+on:
+    workflow_dispatch:
+
+    schedule:
+      - cron: "0 7 * * *"  # 7am everyday
+
+jobs:
+    upload-daily:
+        runs-on: ubuntu-latest
+        env:
+            DATE: ${{ vars.DATE || 'yesterday' }}
+        services:
+            redis:
+                image: redis
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                  - 6379:6379
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                submodules: 'true'
+
+            - name: setup s3 config from r2
+              run: |
+                  echo 1
+                  echo "S3_ENDPOINT_URL=https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com" >> $GITHUB_ENV
+                  echo "AWS_ACCESS_KEY_ID=${{ secrets.CLOUDFLARE_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+                  echo "AWS_DEFAULT_REGION=auto" >> $GITHUB_ENV
+                  echo "AWS_SECRET_ACCESS_KEY=${{ secrets.CLOUDFLARE_ACCESS_KEY_SECRET }}" >> $GITHUB_ENV
+                  echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME  }}" >> $GITHUB_ENV
+
+            # - uses: actions/setup-python@v5
+            #   with:
+            #     python-version: 3.12
+            
+            - name: Install requirements
+              run: |
+                set -e
+            
+                # create a venv
+                python -m venv cxe2stix_helper-venv
+                source cxe2stix_helper-venv/bin/activate
+                # install requirements
+                pip install -r requirements.txt
+                pip install boto3
+
+            - name: Start Celery Worker
+              run: celery -A cve2stix.celery worker --loglevel=info --purge &
+
+            - name: Run and upload
+              env:
+                NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+                REDIS_HOST: 127.0.0.1
+              run: |
+                set -e
+                if [[ -z "$NVD_API_KEY" ]]; then
+                   echo NVD_API_KEY must be set && exit 1
+                fi
+
+                source cxe2stix_helper-venv/bin/activate
+                celery -A cve2stix.celery worker --loglevel=info --purge 
+
+                python daily_uploader.py

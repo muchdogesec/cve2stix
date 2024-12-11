@@ -51,7 +51,6 @@ def map_identity(config, object_list):
     logger.info("Marking Identity creation end")
     return object_list
 
-
 def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
     
     clean_filesystem(config.file_system)
@@ -75,5 +74,7 @@ def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
         current_date = end_date
 
     tasks = [cve_syncing_task.s(param[0], param[1], dataclasses.asdict(config)) for param in params]
-    return chord(group(tasks))(preparing_results.s(dataclasses.asdict(config), filename))
+    res = chord(group(tasks))(preparing_results.s(dataclasses.asdict(config), filename))
+    resp = res.get()
+    return resp
 
