@@ -9,8 +9,7 @@ on:
 jobs:
     upload-daily:
         runs-on: ubuntu-latest
-        env:
-            DATE: ${{ vars.DATE || 'yesterday' }}
+        
         services:
             redis:
                 image: redis
@@ -35,9 +34,9 @@ jobs:
                   echo "AWS_SECRET_ACCESS_KEY=${{ secrets.CLOUDFLARE_ACCESS_KEY_SECRET }}" >> $GITHUB_ENV
                   echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME  }}" >> $GITHUB_ENV
 
-            # - uses: actions/setup-python@v5
-            #   with:
-            #     python-version: 3.12
+            - uses: actions/setup-python@v5
+              with:
+                python-version: 3.12
             
             - name: Install requirements
               run: |
@@ -50,9 +49,6 @@ jobs:
                 pip install -r requirements.txt
                 pip install boto3
 
-            - name: Start Celery Worker
-              run: celery -A cve2stix.celery worker --loglevel=info --purge &
-
             - name: Run and upload
               env:
                 NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
@@ -64,6 +60,6 @@ jobs:
                 fi
 
                 source cxe2stix_helper-venv/bin/activate
-                celery -A cve2stix.celery worker --loglevel=info --purge 
+                celery -A cve2stix.celery worker --loglevel=info --purge & sleep 10
 
                 python daily_uploader.py
