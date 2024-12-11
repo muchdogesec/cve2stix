@@ -17,7 +17,7 @@ def upload_file_to_s3(filepath, s3_path):
 
 yesterday = datetime.now(timezone('UTC')) - timedelta(days=1)
 dstr = yesterday.strftime('%Y-%m-%d')
-path = f"cve/{yesterday.strftime('%Y-%m')}/cve-bundle-{dstr}-00_00_00-{dstr}-23_59_59.json"
+path = f"cve2stix-github-action-output/{yesterday.strftime('%Y-%m')}/cve-bundle-{dstr}-00_00_00-{dstr}-23_59_59.json"
 logging.info("downloading bundle for %s", dstr)
 download_bundle(yesterday.strftime("%Y-%m-%dT00:00:00"), yesterday.strftime("%Y-%m-%dT23:59:59"))
 logging.info("finished downloading bundle for %s", dstr)
