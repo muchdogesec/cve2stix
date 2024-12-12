@@ -47,18 +47,29 @@ def parse_cpe_matches(indicator: Indicator) -> tuple[list[Software], list[Relati
         for cpe_name in get_cpe_match(matchstring):
             software = parse_software(cpe_name, None)
             softwares.setdefault(cpe_name, software)
+            external_references = [
+                {
+                    "source_name": "cve",
+                    "external_id": indicator.name,
+                    "url": "https://nvd.nist.gov/vuln/detail/"+indicator.name,
+                },
+                {
+                    "source_name": "cpe",
+                    "external_id": cpe_name,
+                    # "url": "https://nvd.nist.gov/products/cpe/detail/"+swid,
+                },
+            ]
             relationships.append(
                 Relationship(
                     source_ref=indicator.id,
                     target_ref=software.id,
                     created=indicator.created,
                     modified=indicator.modified,
-                    created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
                     relationship_type="relies-on",
                     description=f"{indicator.name} relies on {software.cpe}",
-                    object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF]
-                        + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
-
+                    created_by_ref=indicator.created_by_ref,
+                    object_marking_refs=indicator.object_marking_refs,
+                    external_references=external_references,
                 )
             )
             if is_vulnerable:
@@ -68,11 +79,11 @@ def parse_cpe_matches(indicator: Indicator) -> tuple[list[Software], list[Relati
                         target_ref=software.id,
                         created=indicator.created,
                         modified=indicator.modified,
-                        created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
                         relationship_type="exploits",
                         description=f"{indicator.name} exploits {software.cpe}",
-                        object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF]
-                        + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
+                        created_by_ref=indicator.created_by_ref,
+                        object_marking_refs=indicator.object_marking_refs,
+                        external_references=external_references,
                     )
                 )
 
