@@ -102,7 +102,7 @@ python3 cve2stix.py \
     * default: none
 * `last_modified_latest` (required, date in format `YYYY-MM-DDThh:mm:ss`): used in the the cve2stix/cpe2stix config
     * default: none
-* `file_time_range` (optional): defines how much data should be packed in each output bundle. Use `d` for days, `m` for months, `y` for years. Note, if no results are found for a time period, a bundle will not be generated. This usually explains why you see "missing" bundles for a day or month. 
+* `file_time_range` (required): defines how much data should be packed in each output bundle. Use `d` for days, `m` for months, `y` for years. Note, if no results are found for a time period, a bundle will not be generated. This usually explains why you see "missing" bundles for a day or month. 
     * default `1d` (1 day)
 
 IMPORTANT: if the time between `--last_modified_earliest` and `--last_modified_latest` is greater than 120 days and you select `--file_time_range` = `1y`, the script will batch celery jobs with different `lastModStartDate` and `lastModEndDate` as NVD only allows for a range of 120 days to be specified in a request.
@@ -117,6 +117,19 @@ python3 cve2stix.py \
     --last_modified_latest 2024-06-30T23:59:59 \
     --file_time_range 1d
 ```
+
+Will generate bundle files in directories as follows:
+
+```txt
+output
+└── bundles
+    ├── cve-bundle-2024_08_01-00_00_00-2024_08_01-23_59_59.json
+    ├── cve-bundle-2024_08_02-00_00_00-2024_08_02-23_59_59.json
+    ├── cve-bundle-2024_08_03-00_00_00-2024_08_03-23_59_59.json
+    ├── ...
+```
+
+Note, it is possible to have missing gaps in the data. This just means no CVE had a modified time between that time range.
 
 On each run, the old data will be overwritten -- BE CAREFUL!
 
