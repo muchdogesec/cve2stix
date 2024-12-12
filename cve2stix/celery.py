@@ -1,10 +1,25 @@
 import logging, os
 from celery import Celery
 from celery.signals import setup_logging  # noqa
-from .stix_store import StixStore
+from .stix_store import store_cve_in_bundle
 from stix2.datastore.filters import Filter
 from .config import Config
-from .helper import delete_subfolders, append_data
+from .helper import append_data
+
+import logging
+import os
+import subprocess
+import sys
+import time
+from cve2stix.config import Config
+import argparse
+import logging
+import subprocess
+import sys
+import calendar
+import time
+import os
+
 
 
 if bool(os.getenv("CENTRAL_CELERY")):
@@ -38,6 +53,9 @@ def cve_syncing_task(start, end, config):
 def get_matching_criteria(start):
     pass
 
+@app.task
+def is_online():
+    return True
 
 @app.task()
 def preparing_results(task_results, config, filename=None):
@@ -51,13 +69,29 @@ def preparing_results(task_results, config, filename=None):
 
     vulnerabilities = config.fs.query([Filter("type", "=", "vulnerability")])
     if vulnerabilities:
-        stix_store = StixStore(
-            config.stix2_objects_folder, config.stix2_bundles_folder
-        )
-        stix_store.store_cve_in_bundle(results, filename, update=True)
+        store_cve_in_bundle(config.stix2_bundles_folder, results, filename)
     else:
         logging.info("Not writing any file because no output")
-    if bool(os.getenv("CENTRAL_CELERY")):
-        delete_subfolders(config.stix2_objects_folder)
 
 
+def check_online_status(app: Celery=app):
+    availability_status = app.control.inspect().ping()
+    logging.info("celery workers ping: %s", str(availability_status))
+    return availability_status
+
+def start_celery(path: str, cwd=".", app=app):
+    logging.info(f"Starting celery: {path}")
+    args = ["celery", "-A", path, "--workdir", cwd, "worker", "--loglevel", "info", "--purge"]
+    p = subprocess.Popen(args, stdout=sys.stdout, stderr=sys.stderr)
+    
+    logging.info(f"Waiting 10 seconds for celery to initialize")
+    for i in range(10):
+        availability_status = check_online_status(app)
+        if availability_status:
+            break
+        time.sleep(1)
+    if not availability_status:
+        p.kill()
+        raise Exception("Unable to start worker")
+    logging.info("Worker started")
+    return p

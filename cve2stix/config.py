@@ -63,6 +63,11 @@ class Config:
     REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
     REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
 
+    CPE_MATCH_FEED_URL = "https://nvd.nist.gov/feeds/json/cpematch/1.0/nvdcpematch-1.0.json.zip"
+
     @property
     def fs(self):
         return FileSystemStore(self.file_system)
+    
+
+DEFAULT_CONFIG = Config()

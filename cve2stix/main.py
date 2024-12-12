@@ -6,7 +6,7 @@ import dataclasses
 import math
 import requests
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from .config import Config
 from .helper import (
@@ -38,7 +38,7 @@ def map_marking_definition(config, object_list):
 
 def map_extensions(config, object_list):
     logger.info("Adding extensions")
-    extensions = [stix_extensions.indicator_vulnerable_cpes_ExtensionDefinitionSMO, stix_extensions.vulnerability_scoring_ExtensionDefinitionSMO]
+    extensions = [stix_extensions.indicator_vulnerable_cpes_ExtensionDefinitionSMO, stix_extensions.vulnerability_scoring_ExtensionDefinitionSMO, stix_extensions.software_cpe_properties_ExtensionDefinitionSMO]
     object_list.extend(extensions)
     config.fs.add(extensions)
     return object_list
@@ -51,18 +51,24 @@ def map_identity(config, object_list):
     logger.info("Marking Identity creation end")
     return object_list
 
+def _parse_date(d: str|datetime|date):
+    if isinstance(d, str):
+        d = datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+    elif isinstance(d, date):
+        d = datetime.fromtimestamp(d.timestamp())
+    return d
 
 def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
     
     clean_filesystem(config.file_system)
     params = []
-    current_date = datetime.strptime(config.start_date, "%Y-%m-%dT%H:%M:%S")
+    current_date = _parse_date(config.start_date)
     if c_start_date:
-        current_date = datetime.strptime(c_start_date, "%Y-%m-%dT%H:%M:%S")
+        current_date = _parse_date(c_start_date)
 
-    end_date_ = datetime.strptime(config.end_date, "%Y-%m-%dT%H:%M:%S")
+    end_date_ = _parse_date(config.end_date)
     if c_start_date:
-        end_date_ = datetime.strptime(c_end_date, "%Y-%m-%dT%H:%M:%S")
+        end_date_ = _parse_date(c_end_date)
 
     while current_date < end_date_:
         start_date = current_date
@@ -75,5 +81,7 @@ def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
         current_date = end_date
 
     tasks = [cve_syncing_task.s(param[0], param[1], dataclasses.asdict(config)) for param in params]
-    return chord(group(tasks))(preparing_results.s(dataclasses.asdict(config), filename))
+    res = chord(group(tasks))(preparing_results.s(dataclasses.asdict(config), filename))
+    resp = res.get()
+    return resp
 
