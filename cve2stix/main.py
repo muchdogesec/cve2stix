@@ -6,7 +6,7 @@ import dataclasses
 import math
 import requests
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from .config import Config
 from .helper import (
@@ -51,17 +51,24 @@ def map_identity(config, object_list):
     logger.info("Marking Identity creation end")
     return object_list
 
+def _parse_date(d: str|datetime|date):
+    if isinstance(d, str):
+        d = datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+    elif isinstance(d, date):
+        d = datetime.fromtimestamp(d.timestamp())
+    return d
+
 def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
     
     clean_filesystem(config.file_system)
     params = []
-    current_date = datetime.strptime(config.start_date, "%Y-%m-%dT%H:%M:%S")
+    current_date = _parse_date(config.start_date)
     if c_start_date:
-        current_date = datetime.strptime(c_start_date, "%Y-%m-%dT%H:%M:%S")
+        current_date = _parse_date(c_start_date)
 
-    end_date_ = datetime.strptime(config.end_date, "%Y-%m-%dT%H:%M:%S")
+    end_date_ = _parse_date(config.end_date)
     if c_start_date:
-        end_date_ = datetime.strptime(c_end_date, "%Y-%m-%dT%H:%M:%S")
+        end_date_ = _parse_date(c_end_date)
 
     while current_date < end_date_:
         start_date = current_date

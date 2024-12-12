@@ -104,7 +104,7 @@ def get_cpe_match(match_string: str)  -> list[str]:
 
 @lru_cache(maxsize=1)
 def retrieve_cpematch(d: date):
-    logging.info("Downloading CPEMatch Feed...", config.CPE_MATCH_FEED_URL)
+    logging.info("Downloading CPEMatch Feed... %s", config.CPE_MATCH_FEED_URL)
     resp = requests.get(config.CPE_MATCH_FEED_URL)
     retval = {}
     logging.info("Downloaded CPEMatch Feed from %s", config.CPE_MATCH_FEED_URL)

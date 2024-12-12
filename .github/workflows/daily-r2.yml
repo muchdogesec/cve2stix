@@ -45,7 +45,9 @@ jobs:
                 # create a venv
                 python -m venv cxe2stix_helper-venv
                 source cxe2stix_helper-venv/bin/activate
+
                 # install requirements
+
                 pip install -r requirements.txt
                 pip install boto3
 
@@ -60,6 +62,5 @@ jobs:
                 fi
 
                 source cxe2stix_helper-venv/bin/activate
-                celery -A cve2stix.celery worker --loglevel=info --purge & sleep 10
 
                 python daily_uploader.py
