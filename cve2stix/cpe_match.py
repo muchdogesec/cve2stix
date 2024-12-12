@@ -53,8 +53,9 @@ def parse_cpe_matches(indicator: Indicator) -> tuple[list[Software], list[Relati
                     target_ref=software.id,
                     created=indicator.created,
                     modified=indicator.modified,
+                    created_by_ref="identity--562918ee-d5da-5579-b6a1-fae50cc6bad3",
                     relationship_type="relies-on",
-                    description=f"{indicator.name} referenced in {software.cpe}",
+                    description=f"{indicator.name} relies on {software.cpe}",
                     object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF]
                         + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
 
@@ -67,8 +68,9 @@ def parse_cpe_matches(indicator: Indicator) -> tuple[list[Software], list[Relati
                         target_ref=software.id,
                         created=indicator.created,
                         modified=indicator.modified,
+                        created_by_ref="identity--562918ee-d5da-5579-b6a1-fae50cc6bad3",
                         relationship_type="exploits",
-                        description=f"{indicator.name} referenced in {software.cpe}",
+                        description=f"{indicator.name} exploits {software.cpe}",
                         object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF]
                         + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
                     )
