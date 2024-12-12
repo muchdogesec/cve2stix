@@ -53,8 +53,11 @@ def parse_cpe_matches(indicator: Indicator) -> tuple[list[Software], list[Relati
                     target_ref=software.id,
                     created=indicator.created,
                     modified=indicator.modified,
-                    relationship_type="pattern-contains",
-                    description=f"{indicator.name} pattern contains {software.cpe}",
+                    relationship_type="relies-on",
+                    description=f"{indicator.name} referenced in {software.cpe}",
+                    object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF]
+                        + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
+
                 )
             )
             if is_vulnerable:
@@ -64,8 +67,10 @@ def parse_cpe_matches(indicator: Indicator) -> tuple[list[Software], list[Relati
                         target_ref=software.id,
                         created=indicator.created,
                         modified=indicator.modified,
-                        relationship_type="is-vulnerable",
-                        description=f"{software.cpe} is vulnerable to {indicator.name}",
+                        relationship_type="exploits",
+                        description=f"{indicator.name} referenced in {software.cpe}",
+                        object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF]
+                        + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
                     )
                 )
 

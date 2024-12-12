@@ -435,13 +435,20 @@ A relationship between the Indicator and corresponding Software object is made a
     "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
-    "relationship_type": "pattern-contains",
+    "relationship_type": "relies-on",
     "source_ref": "indicator--<INDICATOR STIX OBJECT>",
     "target_ref": "software--<SOFTWARE STIX OBJECT>",
     "description": "<Indicator name> <relationship_type without - char> <CPE ID>",
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
         "<MARKING DEFINITION IMPORTED>"
+    ],
+    "external_references": [
+        {
+            "source_name": "cve",
+            "external_id": "<vulnerabilities.cve.id>",
+            "url": "https://nvd.nist.gov/vuln/detail/<vulnerabilities.cve.id>"
+        }
     ]
 }
 ```
@@ -460,13 +467,20 @@ A relationship between the Indicator and corresponding Software object is made a
     "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
-    "relationship_type": "is-vulnerable",
+    "relationship_type": "exploits",
     "source_ref": "indicator--<INDICATOR STIX OBJECT>",
     "target_ref": "software--<SOFTWARE STIX OBJECT>",
     "description": "<Indicator name> <relationship_type without - char> <CPE ID>",
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
         "<MARKING DEFINITION IMPORTED>"
+    ],
+    "external_references": [
+        {
+            "source_name": "cve",
+            "external_id": "<vulnerabilities.cve.id>",
+            "url": "https://nvd.nist.gov/vuln/detail/<vulnerabilities.cve.id>"
+        }
     ]
 }
 ```
