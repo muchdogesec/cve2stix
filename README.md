@@ -92,12 +92,33 @@ To open the application. You can also use Docker to run flower, [as detailed her
 The script to get CVEs can now be executed (in the second terminal window) using;
 
 ```shell
-python3 cve2stix.py
+python3 cve2stix.py \
+    --last_modified_earliest date \
+    --last_modified_latest date \
+    --file_time_range dictionary
 ```
 
-It will also filter the data created using any values entered in the `.env` file on each run.
+* `last_modified_earliest` (required, date in format `YYYY-MM-DDThh:mm:ss`): earliest modified data 
+    * default: none
+* `last_modified_latest` (required, date in format `YYYY-MM-DDThh:mm:ss`): used in the the cve2stix/cpe2stix config
+    * default: none
+* `file_time_range` (optional): defines how much data should be packed in each output bundle. Use `d` for days, `m` for months, `y` for years. Note, if no results are found for a time period, a bundle will not be generated. This usually explains why you see "missing" bundles for a day or month. 
+    * default `1d` (1 day)
 
-On each run, the old `stix2_objects/cve-bundle.json` will be overwritten. 
+IMPORTANT: if the time between `--last_modified_earliest` and `--last_modified_latest` is greater than 120 days and you select `--file_time_range` = `1y`, the script will batch celery jobs with different `lastModStartDate` and `lastModEndDate` as NVD only allows for a range of 120 days to be specified in a request.
+
+The script will also filter the data created using any values entered in the `.env` file on each run.
+
+e.g. get all cves for June 2024 (and place into daily bundles)
+
+```shell
+python3 cve2stix.py \
+    --last_modified_earliest 2024-06-01T00:00:00 \
+    --last_modified_latest 2024-06-30T23:59:59 \
+    --file_time_range 1d
+```
+
+On each run, the old data will be overwritten -- BE CAREFUL!
 
 On each run it is vital you shutdown the celery workers before restarting and running the job again.
 
