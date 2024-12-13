@@ -9,6 +9,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from stix2 import FileSystemStore
 from uuid import UUID
+from enum import StrEnum
 
 load_dotenv()
 
@@ -28,10 +29,15 @@ def validate_date_from_env(key):
         return value
     except:
         return None
+    
+class FilterMode(StrEnum):
+    PUB_DATE = 'pub'
+    MOD_DATE = 'lastMod'
 
 @dataclass
 class Config:
     type: str = "cve"
+    filter_mode: FilterMode = FilterMode.MOD_DATE
     CVE2STIX_FOLDER = Path(os.path.abspath(__file__)).parent
     REPO_FOLDER = CVE2STIX_FOLDER.parent
     LAST_MODIFIED_TIME = os.getenv('CVE_LAST_MODIFIED_EARLIEST')

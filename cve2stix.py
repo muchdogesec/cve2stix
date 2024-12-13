@@ -5,20 +5,21 @@ import argparse
 import subprocess
 import sys
 import time
-from cve2stix.config import Config
+from cve2stix.config import Config, FilterMode
 from cve2stix.main import main as download_bundle
 from cve2stix.celery import check_online_status, start_celery
 import argparse
 import logging
 from pathlib import Path
 import re
-from datetime import datetime as dt, timedelta
+from datetime import datetime as dt, timedelta, timezone
 import subprocess
 import sys
 import calendar
 import time
 import os
 import dotenv
+from tqdm import tqdm
 
 dotenv.load_dotenv()
 
@@ -46,21 +47,30 @@ def parse_time_range(s):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Helper script for converting CVE and CPE data to STIX format.", allow_abbrev=True)
-    parser.add_argument("--last_modified_earliest", help="Earliest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", required=True, type=valid_date)
-    latest = parser.add_argument("--last_modified_latest", help="Latest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", required=True, type=valid_date)
+    # Create an argument group for last modified filters (conditionally required)
+    last_modified_group = parser.add_argument_group('last_modified_filters', 'Filters for the time range of CVE data')
+
+    # Add arguments to the group
+    last_modified_group.add_argument("--last_modified_earliest", help="Earliest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date)
+    last_modified_group.add_argument("--last_modified_latest", help="Latest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date)
     parser.add_argument("--file_time_range", help="Time range for file processing (e.g., 1m)", default="1m", type=parse_time_range)
+    parser.add_argument("--all_time", action='store_true', help="If set, ignores last modified filters")
     
     args = parser.parse_args()
 
-    if args.last_modified_latest < args.last_modified_earliest:
-        raise argparse.ArgumentError(latest, "--last_modified_latest must not be earlier than --last_modified_earliest")
+    if not args.all_time:
+        if not args.last_modified_earliest or not args.last_modified_latest:
+            parser.error("--last_modified_earliest and --last_modified_latest are required unless --all_time is set")
+
+        if args.last_modified_latest < args.last_modified_earliest:
+            raise argparse.ArgumentError(last_modified_group, "--last_modified_latest must not be earlier than --last_modified_earliest")
 
     return args
 
-def get_time_ranges(s, earliest: dt, latest: dt) -> list[tuple[dt, dt]]:
+def get_time_ranges(timerange_arg, earliest: dt, latest: dt) -> list[tuple[dt, dt]]:
     ONEDAY = timedelta(days=1)
     ONESEC = timedelta(seconds=1)
-    match = re.match(r'(\d+)(\w+)', s)
+    match = re.match(r'(\d+)(\w+)', timerange_arg)
     num, unit = match.groups()
     num = int(num)
     output = []
@@ -83,12 +93,14 @@ def get_time_ranges(s, earliest: dt, latest: dt) -> list[tuple[dt, dt]]:
             hi = latest
         output.append((unit, lo, hi))
         hi += ONESEC
+    
+    logging.info(f"Dates from {earliest.isoformat()} to {latest.isoformat()} splitted into {len(output)} timeranges of {timerange_arg}")
     return output
 
 
 def run():
-    check_online_status()
     args = parse_args()
+    check_online_status()
 
     celery_process = start_celery("cve2stix.celery")
     check_online_status()
@@ -97,7 +109,13 @@ def run():
     OBJECTS_PARENT = PARENT_PATH / "objects"
     BUNDLE_PATH = PARENT_PATH / "bundles"
 
-    for time_unit, start_date, end_date in get_time_ranges(args.file_time_range, args.last_modified_earliest, args.last_modified_latest):
+    filter_mode = FilterMode.MOD_DATE
+    if args.all_time:
+        filter_mode = FilterMode.PUB_DATE
+        args.last_modified_earliest = dt(1988, 10, 1, tzinfo=timezone.utc)
+        args.last_modified_latest = (dt.now(timezone.utc) - timedelta(days=1)).replace(hour=23, minute=59, second=59)
+
+    for time_unit, start_date, end_date in tqdm(get_time_ranges(args.file_time_range, args.last_modified_earliest, args.last_modified_latest)):
         start_day, end_day = start_date.strftime('%Y_%m_%d-%H_%M_%S'), end_date.strftime('%Y_%m_%d-%H_%M_%S')
         subdir = start_date.strftime('%Y-%m') if time_unit == 'd' else start_date.strftime('%Y')
         file_system = OBJECTS_PARENT / f"cve_objects-{start_day}-{end_day}"
@@ -115,7 +133,8 @@ def run():
                 stix2_objects_folder=str(file_system),
                 file_system=str(file_system),
                 stix2_bundles_folder=str(BUNDLE_PATH),
-                nvd_api_key=os.getenv("NVD_API_KEY")
+                nvd_api_key=os.getenv("NVD_API_KEY"),
+                filter_mode=filter_mode,
             ),
         )
     

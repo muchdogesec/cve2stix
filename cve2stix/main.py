@@ -22,9 +22,9 @@ from .utils import fetch_url
 from stix2extensions import _extensions as stix_extensions
 
 
-def fetch_data(start, end, config):
+def fetch_data(start, end, config: Config):
     uri = list(urlsplit(config.nvd_cve_api_endpoint))
-    uri[3] = urlencode(parse_qsl(uri[3]) + [("lastModStartDate", get_date_string_nvd_format(start)), ("lastModEndDate", get_date_string_nvd_format(end))])
+    uri[3] = urlencode(parse_qsl(uri[3]) + [(config.filter_mode+"StartDate", get_date_string_nvd_format(start)), (config.filter_mode+"EndDate", get_date_string_nvd_format(end))])
     return fetch_url(urlunsplit(uri), config, parse_cve_api_response)
 
 
