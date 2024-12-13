@@ -129,7 +129,14 @@ output
     ├── ...
 ```
 
-Note, it is possible to have missing gaps in the data. This just means no CVE had a modified time between that time range.
+Note, it is possible to have missing gaps in the data. This just means no CVE had a modified time between that time range. This is especially true when running a backfill, e.g.
+
+```shell
+python3 cve2stix.py \
+    --last_modified_earliest 2005-01-01T00:00:00 \
+    --last_modified_latest 2024-12-12T23:59:59 \
+    --file_time_range 1d
+```
 
 On each run, the old data will be overwritten -- BE CAREFUL!
 

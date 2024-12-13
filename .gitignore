@@ -346,3 +346,4 @@ cve2stix-venv/
 stix2_objects/
 temporary/
 logs/
+output
