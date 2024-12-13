@@ -46,6 +46,6 @@ Set the following in Github secrets;
 CLOUDFLARE_ACCOUNT_ID=#Get this in Cloudflare R2 UI (it looks like this: https://<ID>.r2.cloudflarestorage.com)
 CLOUDFLARE_ACCESS_KEY_ID=#Get this in Cloudflare R2 UI
 CLOUDFLARE_ACCESS_KEY_SECRET=#Get this in Cloudflare R2 UI
-S3_BUCKET_NAME=#the bucket name
+S3_BUCKET_NAME=cve2stix-action-output
 NVD_API_KEY=#Get this from https://nvd.nist.gov/developers/request-an-api-key
 ```
