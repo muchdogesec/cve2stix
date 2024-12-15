@@ -113,8 +113,8 @@ e.g. get all cves for June 2024 (and place into daily bundles)
 
 ```shell
 python3 cve2stix.py \
-    --last_modified_earliest 2024-06-01T00:00:00 \
-    --last_modified_latest 2024-06-30T23:59:59 \
+    --last_modified_earliest 2024-11-01T00:00:00 \
+    --last_modified_latest 2024-11-30T23:59:59 \
     --file_time_range 1d
 ```
 

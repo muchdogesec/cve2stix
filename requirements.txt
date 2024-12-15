@@ -18,11 +18,11 @@ stix2==3.0.1
 stix2-patterns==2.0.0
 urllib3==2.2.2
 python-dotenv
-eventlet==0.38.2
+eventlet==0.38.1
 celery==5.3.4
 ijson==3.3.0
 redis==5.2.1
-kombu==5.3.2
+kombu==5.4.2
 flower==2.0.1
 tqdm==4.67.1
 https://github.com/muchdogesec/stix2extensions/releases/download/main-2024-11-29-08-23-28/stix2extensions-0.0.2b1-py3-none-any.whl
