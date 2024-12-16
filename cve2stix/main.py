@@ -4,6 +4,7 @@ Main driver logic for cve2stix
 
 import dataclasses
 import math
+import pytz
 import requests
 import time
 from datetime import datetime, timedelta, date
@@ -53,9 +54,9 @@ def map_identity(config, object_list):
 
 def _parse_date(d: str|datetime|date):
     if isinstance(d, str):
-        d = datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        d = pytz.utc.localize(datetime.strptime(d, "%Y-%m-%dT%H:%M:%S"))
     elif isinstance(d, date):
-        d = datetime.fromtimestamp(d.timestamp())
+        d = datetime.fromtimestamp(d.timestamp(), tz=pytz.utc)
     return d
 
 def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
@@ -80,6 +81,7 @@ def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
         )
         current_date = end_date
 
+    print(params, current_date, c_start_date, type(c_end_date))
     tasks = [cve_syncing_task.s(param[0], param[1], dataclasses.asdict(config)) for param in params]
     res = chord(group(tasks))(preparing_results.s(dataclasses.asdict(config), filename))
     resp = res.get()

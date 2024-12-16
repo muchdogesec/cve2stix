@@ -20,6 +20,7 @@ import time
 import os
 import dotenv
 from tqdm import tqdm
+import pytz
 
 dotenv.load_dotenv()
 
@@ -27,7 +28,7 @@ PUB_START_DATE = dt(1988, 10, 1, tzinfo=timezone.utc)
 
 def valid_date(s):
     try:
-        return dt.strptime(s, "%Y-%m-%dT%H:%M:%S")
+        return pytz.utc.localize(dt.strptime(s, "%Y-%m-%dT%H:%M:%S"))
     except ValueError:
         msg = f"Not a valid date: {s}. Please use the format `YYYY-MM-DDThh:mm:ss`."
         raise argparse.ArgumentTypeError(msg)
