@@ -23,6 +23,8 @@ from tqdm import tqdm
 
 dotenv.load_dotenv()
 
+PUB_START_DATE = dt(1988, 10, 1, tzinfo=timezone.utc)
+
 def valid_date(s):
     try:
         return dt.strptime(s, "%Y-%m-%dT%H:%M:%S")
@@ -44,26 +46,52 @@ def parse_time_range(s):
         raise argparse.ArgumentTypeError(f"Prefix cannot be zero or negative: {s}")
     return s
 
+class _HelpAction(argparse._HelpAction):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.print_help()
+
+        # retrieve subparsers from parser
+        subparsers_actions = [
+            action for action in parser._actions
+            if isinstance(action, argparse._SubParsersAction)]
+        # there will probably only be one subparser_action,
+        # but better save than sorry
+        for subparsers_action in subparsers_actions:
+            # get all subparsers and print help
+            for choice, subparser in subparsers_action.choices.items():
+                print(" ========= Mode '{}' ========= ".format(choice))
+                print(subparser.format_help())
+
+        parser.exit()
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Helper script for converting CVE and CPE data to STIX format.", allow_abbrev=True)
+    parser = argparse.ArgumentParser(description="Helper script for converting CVE and CPE data to STIX format.", allow_abbrev=True, add_help=False)
+    parser.add_argument('--help', action=_HelpAction, help='help for help if you need some help')  # add custom help
+
     # Create an argument group for last modified filters (conditionally required)
-    last_modified_group = parser.add_argument_group('last_modified_filters', 'Filters for the time range of CVE data')
+    subparsers = parser.add_subparsers(dest='mode', required=True)
+
+    mod_group = subparsers.add_parser('mod', help='Filters for the time range of CVE data by lastModStartDate & lastModEndDate')
+    all_time = subparsers.add_parser('pub', help='Filters for the time range of CVE data by pubStartDate & pubEndDate')
 
     # Add arguments to the group
-    last_modified_group.add_argument("--last_modified_earliest", help="Earliest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date)
-    last_modified_group.add_argument("--last_modified_latest", help="Latest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date)
-    parser.add_argument("--file_time_range", help="Time range for file processing (e.g., 1m)", default="1m", type=parse_time_range)
-    parser.add_argument("--all_time", action='store_true', help="If set, ignores last modified filters")
+    # mod_group.
+    mod_group.add_argument("--earliest", help="Earliest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date, required=True)
+    mod_group.add_argument("--latest", help="Latest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date, required=True)
+
+    all_time.add_argument("--earliest", help=f"Earliest date for pubDate filter, default: {PUB_START_DATE.isoformat()}", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date, default=PUB_START_DATE)
+    all_time.add_argument("--latest", help=f"Latest date for pubDate filter, default: {yesterday().isoformat()}", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date, default=yesterday())
+
+    for p in subparsers.choices.values():
+        p.add_argument("--file_time_range", help="Time range for file processing (e.g., 1m)", default="1m", type=parse_time_range)
+    # parser.add_argument("--all_time", action='store_true', help="If set, ignores last modified filters")
     
     args = parser.parse_args()
 
-    if not args.all_time:
-        if not args.last_modified_earliest or not args.last_modified_latest:
-            parser.error("--last_modified_earliest and --last_modified_latest are required unless --all_time is set")
 
-        if args.last_modified_latest < args.last_modified_earliest:
-            raise argparse.ArgumentError(last_modified_group, "--last_modified_latest must not be earlier than --last_modified_earliest")
+    if args.latest < args.earliest:
+        raise argparse.ArgumentError(mod_group, "--latest must not be earlier than --earliest")
 
     return args
 
@@ -110,12 +138,12 @@ def run():
     BUNDLE_PATH = PARENT_PATH / "bundles"
 
     filter_mode = FilterMode.MOD_DATE
-    if args.all_time:
+    if args.mode == 'pub':
         filter_mode = FilterMode.PUB_DATE
-        args.last_modified_earliest = dt(1988, 10, 1, tzinfo=timezone.utc)
-        args.last_modified_latest = (dt.now(timezone.utc) - timedelta(days=1)).replace(hour=23, minute=59, second=59)
+        args.earliest = args.earliest or PUB_START_DATE
+        args.latest = args.latest or yesterday()
 
-    for time_unit, start_date, end_date in tqdm(get_time_ranges(args.file_time_range, args.last_modified_earliest, args.last_modified_latest)):
+    for time_unit, start_date, end_date in tqdm(get_time_ranges(args.file_time_range, args.earliest, args.latest)):
         start_day, end_day = start_date.strftime('%Y_%m_%d-%H_%M_%S'), end_date.strftime('%Y_%m_%d-%H_%M_%S')
         subdir = start_date.strftime('%Y-%m') if time_unit == 'd' else start_date.strftime('%Y')
         file_system = OBJECTS_PARENT / f"cve_objects-{start_day}-{end_day}"
@@ -139,6 +167,9 @@ def run():
         )
     
     celery_process.kill()
+
+def yesterday():
+    return (dt.now(timezone.utc) - timedelta(days=1)).replace(hour=23, minute=59, second=59, microsecond=0)
 
 if __name__ == "__main__":
     run()

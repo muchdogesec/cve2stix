@@ -100,7 +100,7 @@ def get_cpematch(criteria_id: str) -> list[tuple[str, str]]:
 @lru_cache(maxsize=None)
 def get_cpe_match(match_string: str)  -> list[str]:
     matches = retrieve_cpematch(datetime.now(timezone('EST')).date())
-    return matches[match_string]
+    return matches.get(match_string, [match_string])
 
 @lru_cache(maxsize=1)
 def retrieve_cpematch(d: date):
@@ -111,9 +111,10 @@ def retrieve_cpematch(d: date):
     with zipfile.ZipFile(io.BytesIO(resp.content)) as zip:
         with zip.open("nvdcpematch-1.0.json") as f:
             matches = ijson.items(f, 'matches.item')
-            for match in matches:
+            for count, match in enumerate(matches):
                 match_spec = match["cpe23Uri"]
                 retval[match_spec] = [m["cpe23Uri"] for m in match['cpe_name']]
+            logging.info(f"retrieve_cpematch: {count=}, {len(retval)=}")
     return retval
 
 

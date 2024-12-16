@@ -3,7 +3,7 @@ import requests
 import json
 import os
 import redis
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
@@ -37,7 +37,7 @@ class FilterMode(StrEnum):
 @dataclass
 class Config:
     type: str = "cve"
-    filter_mode: FilterMode = FilterMode.MOD_DATE
+    filter_mode: FilterMode = field(default=FilterMode.MOD_DATE)
     CVE2STIX_FOLDER = Path(os.path.abspath(__file__)).parent
     REPO_FOLDER = CVE2STIX_FOLDER.parent
     LAST_MODIFIED_TIME = os.getenv('CVE_LAST_MODIFIED_EARLIEST')
