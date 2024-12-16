@@ -132,5 +132,9 @@ def parse_software(cpename, swid):
                 "extension_type": "toplevel-property-extension"
             }
         },
+        object_marking_refs=[
+            "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
+            "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3"
+        ],
         allow_custom=True,
     )
