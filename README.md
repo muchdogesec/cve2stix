@@ -69,29 +69,29 @@ To see more information about how to set the variables, and what they do, read t
 The script to get CVEs can now be executed (in the second terminal window) using;
 
 ```shell
-python3 cve2stix.py \
+python3 cve2stix.py MODE \
     --last_modified_earliest date \
     --last_modified_latest date \
     --file_time_range dictionary
 ```
 
-* `last_modified_earliest` (required, date in format `YYYY-MM-DDThh:mm:ss`): earliest modified data 
-    * default: none
-* `last_modified_latest` (required, date in format `YYYY-MM-DDThh:mm:ss`): used in the the cve2stix/cpe2stix config
-    * default: none
+* `MODE`: either
+    * `mod`: uses modified date for `--earliest` and `--latest` flags (recommended for daily updates)
+    * `pub`: uses published date for `--earliest` and `--latest` flags (recommended for backfill -- see note later)
+* `earliest` (required, date in format `YYYY-MM-DDThh:mm:ss`): earliest datetime you want
+* `latest` (required, date in format `YYYY-MM-DDThh:mm:ss`): latest datetime you want
 * `file_time_range` (required): defines how much data should be packed in each output bundle. Use `d` for days, `m` for months, `y` for years. Note, if no results are found for a time period, a bundle will not be generated. This usually explains why you see "missing" bundles for a day or month. 
-    * default `1d` (1 day)
+    * default `1m` (1 month)
 
 IMPORTANT: if the time between `--last_modified_earliest` and `--last_modified_latest` is greater than 120 days and you select `--file_time_range` = `1y`, the script will batch celery jobs with different `lastModStartDate` and `lastModEndDate` as NVD only allows for a range of 120 days to be specified in a request.
 
-The script will also filter the data created using any values entered in the `.env` file on each run.
-
-e.g. get all cves for the first week of December 2024 (and place into daily bundles)
+e.g. get all cves with modified times that are in the first week of December 2024 (and place into daily bundles)
 
 ```shell
 python3 cve2stix.py \
-    --last_modified_earliest 2024-12-01T00:00:00 \
-    --last_modified_latest 2024-12-07T23:59:59 \
+    mod \
+    --earliest 2024-12-01T00:00:00 \
+    --latest 2024-12-07T23:59:59 \
     --file_time_range 1d
 ```
 
@@ -100,9 +100,9 @@ Will generate bundle files in directories as follows:
 ```txt
 output
 └── bundles
-    ├── cve-bundle-2024_08_01-00_00_00-2024_08_01-23_59_59.json
-    ├── cve-bundle-2024_08_02-00_00_00-2024_08_02-23_59_59.json
-    ├── cve-bundle-2024_08_03-00_00_00-2024_08_03-23_59_59.json
+    ├── cve-bundle-2024_12_01-00_00_00-2024_08_01-23_59_59.json
+    ├── cve-bundle-2024_12_02-00_00_00-2024_08_02-23_59_59.json
+    ├── cve-bundle-2024_12_03-00_00_00-2024_08_03-23_59_59.json
     ├── ...
 ```
 
@@ -114,14 +114,21 @@ Between 2024-11-19 and 2024-11-21 most of the NVD dataset was modified as part o
 
 You can read more about this at https://www.nist.gov/itl/nvd#november1524.
 
-This is problematic for us, as will result in huge bundles using the normal `modDate` approach.
+This is problematic for us, as will result in huge bundles using `mod` mode.
 
-As such, we have build in the `--all_time` flag to handle this data more graciously. All time mode uses `pubDate` instead of `modDate` to bundle the files. This will start the run from 1988 (first CVE `pubDate` though to day script is executed). e.g.
+As such, we have build in the `pub` to handle this data more graciously. Because the `pubDate` are more spread out, the resulting will be more manageable sizes. 
+
+Recommended backfill (to December 2024);
 
 ```shell
 python3 cve2stix.py \
-    --all_time
+    pub \
+    --earliest 1988-10-01T00:00:00 \
+    --latest 2024-11-30T23:59:59 \
+    --file_time_range 1d
 ```
+
+(earliest CVE, CVE-1999-0095 was published `1988-10-01T04:00:00.000`).
 
 ## Useful supporting tools
 
