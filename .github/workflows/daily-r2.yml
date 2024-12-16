@@ -43,8 +43,8 @@ jobs:
                 set -e
             
                 # create a venv
-                python -m venv cxe2stix_helper-venv
-                source cxe2stix_helper-venv/bin/activate
+                python -m venv cve2stix_helper-venv
+                source cve2stix_helper-venv/bin/activate
 
                 # install requirements
 
@@ -61,6 +61,6 @@ jobs:
                    echo NVD_API_KEY must be set && exit 1
                 fi
 
-                source cxe2stix_helper-venv/bin/activate
+                source cve2stix_helper-venv/bin/activate
 
                 python daily_uploader.py
