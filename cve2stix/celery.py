@@ -19,6 +19,7 @@ import sys
 import calendar
 import time
 import os
+import atexit
 
 
 
@@ -94,4 +95,5 @@ def start_celery(path: str, cwd=".", app=app):
         p.kill()
         raise Exception("Unable to start worker")
     logging.info("Worker started")
+    atexit.register(p.kill)
     return p

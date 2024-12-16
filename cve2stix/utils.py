@@ -15,6 +15,7 @@ def fetch_url(url, config, callback):
     all_responses_content = []
     uri = urlparse(url)
     query = dict(parse_qsl(uri.query))
+    url = url.split('?')[0]
 
     while start_index < total_results:
         logger.info(f"Calling NVD API `{uri.path}` with startIndex: {start_index}", )
