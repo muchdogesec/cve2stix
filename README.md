@@ -86,12 +86,12 @@ IMPORTANT: if the time between `--last_modified_earliest` and `--last_modified_l
 
 The script will also filter the data created using any values entered in the `.env` file on each run.
 
-e.g. get all cves for June 2024 (and place into daily bundles)
+e.g. get all cves for the first week of December 2024 (and place into daily bundles)
 
 ```shell
 python3 cve2stix.py \
-    --last_modified_earliest 2024-11-01T00:00:00 \
-    --last_modified_latest 2024-11-30T23:59:59 \
+    --last_modified_earliest 2024-12-01T00:00:00 \
+    --last_modified_latest 2024-12-07T23:59:59 \
     --file_time_range 1d
 ```
 
@@ -116,7 +116,12 @@ You can read more about this at https://www.nist.gov/itl/nvd#november1524.
 
 This is problematic for us, as will result in huge bundles using the normal `modDate` approach.
 
-As such, we have build in the `--all_time` flag to handle this data more graciously. All time mode uses `pubDate` instead of `modDate` to bundle the files. This will start the run from 1988 (first CVE `pubDate` though to day script is executed).
+As such, we have build in the `--all_time` flag to handle this data more graciously. All time mode uses `pubDate` instead of `modDate` to bundle the files. This will start the run from 1988 (first CVE `pubDate` though to day script is executed). e.g.
+
+```shell
+python3 cve2stix.py \
+    --all_time
+```
 
 ## Useful supporting tools
 
