@@ -17,7 +17,7 @@ celery_process = start_celery("cve2stix.celery")
 
 yesterday = datetime.now(timezone.utc) - timedelta(days=1)
 dstr = yesterday.strftime('%Y_%m_%d')
-s3_path = f"/{yesterday.strftime('%Y-%m')}/cve-bundle-{dstr}-00_00_00-{dstr}-23_59_59.json"
+s3_path = f"{yesterday.strftime('%Y-%m')}/cve-bundle-{dstr}-00_00_00-{dstr}-23_59_59.json"
 output_filename = "stix2_objects/cve-bundle.json"
 
 logging.info("downloading bundle for %s", dstr.replace('_', '-'))
