@@ -118,13 +118,13 @@ This is problematic for us, as will result in huge bundles using `mod` mode.
 
 As such, we have build in the `pub` to handle this data more graciously. Because the `pubDate` are more spread out, the resulting will be more manageable sizes. 
 
-Recommended backfill (to December 2024);
+Recommended backfill (to end of December 2024);
 
 ```shell
 python3 cve2stix.py \
     pub \
     --earliest 1988-10-01T00:00:00 \
-    --latest 2024-11-30T23:59:59 \
+    --latest 2024-12-31T23:59:59 \
     --file_time_range 1d
 ```
 
