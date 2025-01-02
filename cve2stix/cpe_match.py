@@ -100,7 +100,7 @@ def get_cpematch(criteria_id: str) -> list[tuple[str, str]]:
 @lru_cache(maxsize=None)
 def get_cpe_match(match_string: str)  -> list[str]:
     matches = retrieve_cpematch(datetime.now(timezone('EST')).date())
-    return matches.get(match_string, [match_string])
+    return matches.get(match_string) or [match_string]
 
 @lru_cache(maxsize=1)
 def retrieve_cpematch(d: date):

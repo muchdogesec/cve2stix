@@ -81,7 +81,6 @@ def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
         )
         current_date = end_date
 
-    print(params, current_date, c_start_date, type(c_end_date))
     tasks = [cve_syncing_task.s(param[0], param[1], dataclasses.asdict(config)) for param in params]
     res = chord(group(tasks))(preparing_results.s(dataclasses.asdict(config), filename))
     resp = res.get()
