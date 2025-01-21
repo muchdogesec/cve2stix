@@ -70,8 +70,8 @@ The script to get CVEs can now be executed (in the second terminal window) using
 
 ```shell
 python3 cve2stix.py MODE \
-    --last_modified_earliest date \
-    --last_modified_latest date \
+    --earliest date \
+    --latest date \
     --file_time_range dictionary
 ```
 
@@ -83,7 +83,7 @@ python3 cve2stix.py MODE \
 * `file_time_range` (required): defines how much data should be packed in each output bundle. Use `d` for days, `m` for months, `y` for years. Note, if no results are found for a time period, a bundle will not be generated. This usually explains why you see "missing" bundles for a day or month. 
     * default `1m` (1 month)
 
-IMPORTANT: if the time between `--last_modified_earliest` and `--last_modified_latest` is greater than 120 days and you select `--file_time_range` = `1y`, the script will batch celery jobs with different `lastModStartDate` and `lastModEndDate` as NVD only allows for a range of 120 days to be specified in a request.
+IMPORTANT: if the time between `--earliest` and `--latest` is greater than 120 days and you select `--file_time_range` = `1y`, the script will batch celery jobs with different `lastModStartDate` and `lastModEndDate` as NVD only allows for a range of 120 days to be specified in a request.
 
 e.g. get all cves with modified times that are in the first week of December 2024 (and place into daily bundles)
 
