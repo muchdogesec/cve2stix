@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
 
     schedule:
-      - cron: "0 7 * * *"  # 7am everyday
+      - cron: "5 8 * * *"  # 08:05 (08:05 am) everyday. GitHub actions run at UTC, but NVD work to West Coast USA time. Thus, ensures update is carried out after US day ends.
 
 jobs:
     upload-daily:
