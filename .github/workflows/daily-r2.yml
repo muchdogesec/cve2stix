@@ -1,5 +1,8 @@
 name: R2 Daily Upload
 run-name: ${{ github.actor }} is running cve2stix
+permissions:
+  contents: read
+  
 on:
     workflow_dispatch:
 
