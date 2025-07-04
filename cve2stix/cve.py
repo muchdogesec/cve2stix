@@ -2,22 +2,23 @@
 Representation of CVE object stored in stix2_bundles/
 """
 
+import contextlib
 from dataclasses import dataclass, field
 from datetime import datetime
-import json
 import logging
-from pathlib import Path
 import re
 from typing import List
 import uuid
 from stix2 import Vulnerability, Software, Indicator, Relationship
 
-from cve2stix.cpe_match import parse_cpe_matches
-from .config import DEFAULT_CONFIG as config
-from stix2extensions._extensions import indicator_vulnerable_cpes_ExtensionDefinitionSMO, vulnerability_scoring_ExtensionDefinitionSMO
+from cve2stix import cpe_match
+from .config import DEFAULT_CONFIG as config, Config
+from stix2extensions._extensions import vulnerability_scoring_ExtensionDefinitionSMO
 
 from cve2stix.indicator import parse_cve_indicator
+from stix2.datastore import DataSourceError
 
+from .loggings import logger
 
 
 @dataclass
@@ -37,7 +38,7 @@ class CVE:
         if indicator:
             cve.indicator = indicator[0]
             cve.relationships.append(indicator[1])
-        softwares, rels = parse_cpe_matches(cve.indicator)
+        softwares, rels = cpe_match.parse_cpe_matches(cve.indicator)
         cve.relationships.extend(rels)
         cve.softwares.extend(softwares)
         return cve
@@ -150,3 +151,13 @@ class CVE:
         return tags
     
 
+
+def parse_cve_api_response(cve_content, config: Config) -> List[CVE]:
+    parsed_response = []
+    for cve_item in cve_content["vulnerabilities"]:
+        cve = CVE.from_dict(cve_item)
+        logger.info(f"CVE-> {cve.name}")
+        for object in cve.objects:
+            with contextlib.suppress(DataSourceError):
+                config.fs.add(object)
+    return parsed_response

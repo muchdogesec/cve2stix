@@ -89,14 +89,6 @@ def parse_cpe_matches(indicator: Indicator) -> tuple[list[Software], list[Relati
 
     return list(softwares.values()), relationships
 
-
-@lru_cache(maxsize=None)
-def get_cpematch(criteria_id: str) -> list[tuple[str, str]]:
-    criteria_id = criteria_id.upper()
-    data = json.loads((config.MIRROR_DIRECTORY/"cpematch"/criteria_id[:2]/f'{criteria_id}.json').read_text())
-    match = data['matchString']
-    return [(cpe['cpeName'], cpe['cpeNameId']) for cpe in match.get("matches", [])]
-
 @lru_cache(maxsize=None)
 def get_cpe_match(match_string: str)  -> list[str]:
     matches = retrieve_cpematch(datetime.now(timezone('EST')).date())

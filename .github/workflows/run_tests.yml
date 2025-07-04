@@ -1,0 +1,46 @@
+name: Run Unittests and Upload Coverage
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    environment: test_pipeline
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: run unit tests with pytest+coverage
+        id: test-endpoints
+        run: |
+          pip install -r requirements.txt pytest pytest-cov
+          export PYTHONPATH=.
+
+          pytest --cov --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy tests/
+
+      - name: Upload coverage reports to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

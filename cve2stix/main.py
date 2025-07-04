@@ -3,24 +3,23 @@ Main driver logic for cve2stix
 """
 
 import dataclasses
-import math
+import sys
 import pytz
-import requests
-import time
 from datetime import datetime, timedelta, date
 
 from .config import Config
 from .helper import (
-    get_date_string_nvd_format, load_json_file, clean_filesystem
+    get_date_string_nvd_format, clean_filesystem
 )
-from .parse_api_response import parse_cve_api_response
+from .cve import parse_cve_api_response
 from stix2 import parse
 from celery import group, chord
 from .celery import cve_syncing_task, preparing_results
 from .loggings import logger
-from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from .utils import fetch_url
 from stix2extensions import _extensions as stix_extensions
+sys.setrecursionlimit(10000)
 
 
 def fetch_data(start, end, config: Config):
@@ -56,7 +55,7 @@ def _parse_date(d: str|datetime|date):
     if isinstance(d, str):
         d = pytz.utc.localize(datetime.strptime(d, "%Y-%m-%dT%H:%M:%S"))
     elif isinstance(d, date):
-        d = datetime.fromtimestamp(d.timestamp(), tz=pytz.utc)
+        d = datetime(d.year, d.month, d.day, tzinfo=pytz.utc)
     return d
 
 def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
@@ -81,7 +80,9 @@ def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
         )
         current_date = end_date
 
+
     tasks = [cve_syncing_task.s(param[0], param[1], dataclasses.asdict(config)) for param in params]
+    print(cve_syncing_task.run)
     res = chord(group(tasks))(preparing_results.s(dataclasses.asdict(config), filename))
     resp = res.get()
     return resp

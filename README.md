@@ -69,7 +69,7 @@ To see more information about how to set the variables, and what they do, read t
 The script to get CVEs can now be executed (in the second terminal window) using;
 
 ```shell
-python3 cve2stix.py MODE \
+python3 run_cve2stix.py MODE \
     --earliest date \
     --latest date \
     --file_time_range dictionary
@@ -88,7 +88,7 @@ IMPORTANT: if the time between `--earliest` and `--latest` is greater than 120 d
 e.g. get all cves with modified times that are in the first week of December 2024 (and place into daily bundles)
 
 ```shell
-python3 cve2stix.py \
+python3 run_cve2stix.py \
     mod \
     --earliest 2024-12-01T00:00:00 \
     --latest 2024-12-07T23:59:59 \
@@ -121,7 +121,7 @@ As such, we have build in the `pub` to handle this data more graciously. Because
 Recommended backfill (to end of December 2024);
 
 ```shell
-python3 cve2stix.py \
+python3 run_cve2stix.py \
     pub \
     --earliest 1988-10-01T00:00:00 \
     --latest 2024-12-31T23:59:59 \

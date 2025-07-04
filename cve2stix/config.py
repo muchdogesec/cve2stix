@@ -1,3 +1,4 @@
+from functools import lru_cache
 import logging
 import requests
 import json
@@ -13,6 +14,7 @@ from enum import StrEnum
 
 load_dotenv()
 
+@lru_cache
 def load_file_from_url(url):
     try:
         response = requests.get(url)
