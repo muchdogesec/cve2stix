@@ -79,10 +79,12 @@ def parse_args():
     # Add arguments to the group
     # mod_group.
     mod_group.add_argument("--earliest", help="Earliest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date, required=True)
-    mod_group.add_argument("--latest", help="Latest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date, required=True)
+    latest_mod_action = mod_group.add_argument("--latest", help="Latest date for last modified filter", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date, required=True)
 
     all_time.add_argument("--earliest", help=f"Earliest date for pubDate filter, default: {PUB_START_DATE.isoformat()}", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date, default=PUB_START_DATE)
-    all_time.add_argument("--latest", help=f"Latest date for pubDate filter, default: {yesterday().isoformat()}", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date, default=yesterday())
+    latest_pub_action = all_time.add_argument("--latest", help=f"Latest date for pubDate filter, default: {yesterday().isoformat()}", metavar="YYYY-MM-DDThh:mm:ss", type=valid_date, default=yesterday())
+
+    actions = dict(mod=latest_mod_action, pub=latest_pub_action)
 
     for p in subparsers.choices.values():
         p.add_argument("--file_time_range", help="Time range for file processing (e.g., 1m)", default="1m", type=parse_time_range)
@@ -92,7 +94,7 @@ def parse_args():
 
 
     if args.latest < args.earliest:
-        raise argparse.ArgumentError(mod_group, "--latest must not be earlier than --earliest")
+        raise argparse.ArgumentError(actions[args.mode], "--latest must not be earlier than --earliest")
 
     return args
 
@@ -114,7 +116,7 @@ def get_time_ranges(timerange_arg, earliest: dt, latest: dt) -> list[tuple[dt, d
             if unit == 'd':
                 hi += ONEDAY
             if unit == 'y':
-                hi = dt(hi.year, 12, 31, 23, 59, 59)
+                hi = hi.replace(hi.year, 12, 31, 23, 59, 59)
             hi += ONESEC
         hi -= ONEDAY
         hi = hi.replace(hour=23, minute=59, second=59)

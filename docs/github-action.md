@@ -9,7 +9,7 @@ You can see the action in: `/.github/workflows/daily-r2.yml`.
 Essentially the following command is run everyday by the action
 
 ```shell
-python3 cve2stix.py \
+python3 run_cve2stix.py \
 	mod \
 	--earliest "YESTERDAY (00:00:00)" \
 	--latest "YESTERDAY (23:59:59)" \

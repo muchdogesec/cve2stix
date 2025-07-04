@@ -1,10 +1,9 @@
-import logging, os
+import logging
 from celery import Celery
 from celery.signals import setup_logging  # noqa
 from .stix_store import store_cve_in_bundle
 from stix2.datastore.filters import Filter
 from .config import Config
-from .helper import append_data
 
 import logging
 import os
@@ -12,30 +11,23 @@ import subprocess
 import sys
 import time
 from cve2stix.config import Config
-import argparse
 import logging
 import subprocess
 import sys
-import calendar
 import time
 import os
 import atexit
 
 
-
-if bool(os.getenv("CENTRAL_CELERY")):
-    from config import celery_app as app
-
-if not bool(os.getenv("CENTRAL_CELERY")):
-    CELERY_RESULT_BACKEND='amqp://',
-    app = Celery(
-        'cve2stix', broker=Config.REDIS_URL, backend=Config.REDIS_URL
-    )
-    app.conf.task_default_queue = 'default'
-    app.conf.worker_concurrency = 8  # Set the number of worker processes
-    app.conf.worker_log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    app.conf.worker_log_file = 'logs/celery.log'  # Specify the log file path
-    app.autodiscover_tasks()
+CELERY_RESULT_BACKEND='amqp://',
+app = Celery(
+    'cve2stix', broker=Config.REDIS_URL, backend=Config.REDIS_URL
+)
+app.conf.task_default_queue = 'default'
+app.conf.worker_concurrency = 8  # Set the number of worker processes
+app.conf.worker_log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+app.conf.worker_log_file = 'logs/celery.log'  # Specify the log file path
+app.autodiscover_tasks()
 
 
 @setup_logging.connect
@@ -50,13 +42,6 @@ def cve_syncing_task(start, end, config):
     config = Config(**config)
     fetch_data(start, end, config)
 
-@app.task
-def get_matching_criteria(start):
-    pass
-
-@app.task
-def is_online():
-    return True
 
 @app.task()
 def preparing_results(task_results, config, filename=None):
@@ -66,11 +51,11 @@ def preparing_results(task_results, config, filename=None):
     results = map_marking_definition(config, results)
     results = map_identity(config, results)
     results = map_extensions(config, results)
-    results = append_data(results, config.file_system)
 
     vulnerabilities = config.fs.query([Filter("type", "=", "vulnerability")])
     if vulnerabilities:
-        store_cve_in_bundle(config.stix2_bundles_folder, results, filename)
+        all_objects = config.fs.query([Filter("type", "!=", "")])
+        store_cve_in_bundle(config.stix2_bundles_folder, all_objects, filename)
     else:
         logging.info("Not writing any file because no output")
 

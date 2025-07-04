@@ -25,4 +25,4 @@ redis==5.2.1
 kombu==5.4.2
 flower==2.0.1
 tqdm==4.67.1
-https://github.com/muchdogesec/stix2extensions/releases/download/main-2024-11-29-08-23-28/stix2extensions-0.0.2b1-py3-none-any.whl
+stix2extensions
