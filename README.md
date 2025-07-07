@@ -1,5 +1,7 @@
 # cve2stix
 
+[![codecov](https://codecov.io/gh/muchdogesec/cve2stix/graph/badge.svg?token=C2J19JSPU2)](https://codecov.io/gh/muchdogesec/cve2stix)
+
 ## Before you begin
 
 We host a full web API that includes all objects created by cve2stix, [Vulmatch](https://www.vulmatch.com/).
