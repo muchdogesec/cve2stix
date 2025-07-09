@@ -41,10 +41,10 @@ def test_main_runs_chord_flow(celery_always_eager, config):
 def test_parse_date_variants():
     # string
     s = main._parse_date("2025-07-01T12:00:00")
-    assert s.year == 2025 and s.month == 7
+    assert s.year == 2025 and s.month == 7 and s.hour == 12
 
     # datetime
-    d = datetime(2025, 7, 1, tzinfo=timezone.utc)
+    d = datetime(2025, 7, 1, 12, 5, 1, tzinfo=timezone.utc)
     s2 = main._parse_date(d)
     assert s2 == d
 

@@ -54,6 +54,8 @@ def map_identity(config, object_list):
 def _parse_date(d: str|datetime|date):
     if isinstance(d, str):
         d = pytz.utc.localize(datetime.strptime(d, "%Y-%m-%dT%H:%M:%S"))
+    elif isinstance(d, datetime):
+        d = d.replace(tzinfo=d.tzinfo or pytz.utc)
     elif isinstance(d, date):
         d = datetime(d.year, d.month, d.day, tzinfo=pytz.utc)
     return d
@@ -67,7 +69,7 @@ def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
         current_date = _parse_date(c_start_date)
 
     end_date_ = _parse_date(config.end_date)
-    if c_start_date:
+    if c_end_date:
         end_date_ = _parse_date(c_end_date)
 
     while current_date < end_date_:
@@ -82,7 +84,6 @@ def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
 
 
     tasks = [cve_syncing_task.s(param[0], param[1], dataclasses.asdict(config)) for param in params]
-    print(cve_syncing_task.run)
     res = chord(group(tasks))(preparing_results.s(dataclasses.asdict(config), filename))
     resp = res.get()
     return resp
