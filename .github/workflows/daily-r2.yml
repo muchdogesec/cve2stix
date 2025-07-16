@@ -1,4 +1,5 @@
 name: R2 Daily Upload
+# IMPORTANT: this script will fail if no data is detected. This is a failsafe to notify of potential issues because the NVD API can be unstable (e.g. reporting 0 results, when infact on the next run there are results for the same query)
 run-name: ${{ github.actor }} is running cve2stix
 permissions:
   contents: read
