@@ -30,6 +30,7 @@ jobs:
 
       - name: Setup environment
         id: setup_environment
+        run: |
           pip install -r requirements.txt pytest pytest-cov
           export PYTHONPATH=.
 
