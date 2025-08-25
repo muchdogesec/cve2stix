@@ -14,6 +14,7 @@ from enum import StrEnum
 
 load_dotenv()
 
+
 @lru_cache
 def load_file_from_url(url):
     try:
@@ -24,6 +25,7 @@ def load_file_from_url(url):
         print(f"Error loading JSON from {url}: {e}")
         return None
 
+
 def validate_date_from_env(key):
     try:
         value = os.getenv(key)
@@ -31,10 +33,12 @@ def validate_date_from_env(key):
         return value
     except:
         return None
-    
+
+
 class FilterMode(StrEnum):
-    PUB_DATE = 'pub'
-    MOD_DATE = 'lastMod'
+    PUB_DATE = "pub"
+    MOD_DATE = "lastMod"
+
 
 @dataclass
 class Config:
@@ -42,20 +46,38 @@ class Config:
     filter_mode: FilterMode = field(default=FilterMode.MOD_DATE)
     CVE2STIX_FOLDER = Path(os.path.abspath(__file__)).parent
     REPO_FOLDER = CVE2STIX_FOLDER.parent
-    LAST_MODIFIED_TIME = os.getenv('CVE_LAST_MODIFIED_EARLIEST')
-    start_date:str = validate_date_from_env('CVE_LAST_MODIFIED_EARLIEST')
-    end_date: str = validate_date_from_env('CVE_LAST_MODIFIED_LATEST') if os.getenv("CVE_LAST_MODIFIED_LATEST") else datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    stix2_objects_folder: str = str(os.getenv('CTI_DATA_FOLDER_CVE') if os.getenv('CTI_DATA_FOLDER_CVE') else REPO_FOLDER / "stix2_objects")
-    stix2_bundles_folder: str = str(os.getenv('CTI_DATA_FOLDER_CVE') if os.getenv('CTI_DATA_FOLDER_CVE') else REPO_FOLDER / "stix2_objects")
+    LAST_MODIFIED_TIME = os.getenv("CVE_LAST_MODIFIED_EARLIEST")
+    start_date: str = validate_date_from_env("CVE_LAST_MODIFIED_EARLIEST")
+    end_date: str = (
+        validate_date_from_env("CVE_LAST_MODIFIED_LATEST")
+        if os.getenv("CVE_LAST_MODIFIED_LATEST")
+        else datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    )
+    stix2_objects_folder: str = str(
+        os.getenv("CTI_DATA_FOLDER_CVE")
+        if os.getenv("CTI_DATA_FOLDER_CVE")
+        else REPO_FOLDER / "stix2_objects"
+    )
+    stix2_bundles_folder: str = str(
+        os.getenv("CTI_DATA_FOLDER_CVE")
+        if os.getenv("CTI_DATA_FOLDER_CVE")
+        else REPO_FOLDER / "stix2_objects"
+    )
     store_in_filestore: bool = True
     disable_parsing: bool = False
-    cve_id:str = ""
-    cve_cvssV3_severity:str = ""
+    cve_id: str = ""
+    cve_cvssV3_severity: str = ""
     nvd_cve_api_endpoint: str = "https://services.nvd.nist.gov/rest/json/cves/2.0/"
-    cpematch_api_endpoint: str = "https://services.nvd.nist.gov/rest/json/cpematch/2.0?cveId="
-    results_per_page: int = int(os.getenv('RESULTS_PER_PAGE', 500))
-    nvd_api_key: str = os.getenv('NVD_API_KEY')
-    file_system: str = os.getenv('CTI_DATA_FOLDER_CVE') if os.getenv('CTI_DATA_FOLDER_CVE') else stix2_objects_folder
+    cpematch_api_endpoint: str = (
+        "https://services.nvd.nist.gov/rest/json/cpematch/2.0?cveId="
+    )
+    results_per_page: int = int(os.getenv("RESULTS_PER_PAGE", 500))
+    nvd_api_key: str = os.getenv("NVD_API_KEY")
+    file_system: str = (
+        os.getenv("CTI_DATA_FOLDER_CVE")
+        if os.getenv("CTI_DATA_FOLDER_CVE")
+        else stix2_objects_folder
+    )
     if not os.path.exists(file_system):
         os.makedirs(file_system)
     namespace = UUID("562918ee-d5da-5579-b6a1-fae50cc6bad3")
@@ -64,18 +86,22 @@ class Config:
     CVE2STIX_IDENTITY_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/identity/cve2stix.json"
     CVE2STIX_MARKING_DEFINITION_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/marking-definition/cve2stix.json"
     CVE2STIX_IDENTITY_REF = json.loads(load_file_from_url(url=CVE2STIX_IDENTITY_URL))
-    CVE2STIX_MARKING_DEFINITION_REF = json.loads(load_file_from_url(url=CVE2STIX_MARKING_DEFINITION_URL))
+    CVE2STIX_MARKING_DEFINITION_REF = json.loads(
+        load_file_from_url(url=CVE2STIX_MARKING_DEFINITION_URL)
+    )
 
-    TLP_CLEAR_MARKING_DEFINITION_REF = "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+    TLP_CLEAR_MARKING_DEFINITION_REF = (
+        "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+    )
     REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
     REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
 
-    CPE_MATCH_FEED_URL = "https://nvd.nist.gov/feeds/json/cpematch/1.0/nvdcpematch-1.0.json.zip"
+    CPE_MATCH_FEED_URL = "https://services.nvd.nist.gov/rest/json/cpematch/2.0"
 
     @property
     def fs(self):
         return FileSystemStore(self.file_system)
-    
+
 
 DEFAULT_CONFIG = Config()

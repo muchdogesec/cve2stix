@@ -6,6 +6,8 @@ import requests
 from stix2 import Software, Relationship, Indicator
 from stix2extensions._extensions import software_cpe_properties_ExtensionDefinitionSMO
 import urllib.request
+
+from cve2stix.utils import fetch_url
 from .config import DEFAULT_CONFIG as config
 from functools import lru_cache
 import logging
@@ -15,8 +17,10 @@ import logging
 from stix2.patterns import StringConstant
 import zipfile, ijson
 
+
 def unescape_cpe_string(cpe_string):
     return str(StringConstant(cpe_string))
+
 
 def split_cpe_name(cpename: str) -> list[str]:
     """
@@ -26,32 +30,84 @@ def split_cpe_name(cpename: str) -> list[str]:
     split_name = re.split(non_escaped_colon, cpename)
     return split_name
 
+
 def cpe_name_as_dict(cpe_name: str) -> dict[str, str]:
     splits = split_cpe_name(cpe_name)[1:]
-    return dict(zip(['cpe_version', 'part', 'vendor', 'product', 'version', 'update', 'edition', 'language', 'sw_edition', 'target_sw', 'target_hw', 'other'], splits))
+    return dict(
+        zip(
+            [
+                "cpe_version",
+                "part",
+                "vendor",
+                "product",
+                "version",
+                "update",
+                "edition",
+                "language",
+                "sw_edition",
+                "target_sw",
+                "target_hw",
+                "other",
+            ],
+            splits,
+        )
+    )
 
-def parse_cpe_matches(indicator: Indicator) -> tuple[list[Software], list[Relationship]]:
+
+class CpeMatchGetter:
+    matches = {}
+
+    @classmethod
+    def get_matches_for_cve(cls, cve_id, criteria_ids):
+        if not set(cls.matches).issuperset({c[1] for c in criteria_ids}):
+            fetch_url(
+                url=config.CPE_MATCH_FEED_URL + f"?cveId={cve_id}",
+                config=config,
+                callback=cls.parse_response,
+            )
+        return [
+            (criteria_id, cls.matches.get(criteria_id, []))
+            for match_string, criteria_id in criteria_ids
+        ]
+
+    @classmethod
+    def parse_response(cls, response, *args):
+        for match_data in response.get("matchStrings", []):
+            match_data = match_data["matchString"]
+            criteria_id = match_data["matchCriteriaId"]
+            cpes = cls.matches[criteria_id] = []
+            for cpe in match_data.get("matches", []):
+                cpes.append((cpe["cpeName"], cpe["cpeNameId"]))
+
+
+def parse_cpe_matches(
+    indicator: Indicator,
+) -> tuple[list[Software], list[Relationship]]:
     if not indicator:
         return [], []
     logging.info("parse cpe matches for %s", indicator.name)
-    logging.info(f"{get_cpe_match.cache_info()}")
     softwares = {}
     relationships = []
-    criteria_ids = {}
-    for vv in indicator.x_cpes.get('vulnerable', []):
-        criteria_ids[vv['matchCriteriaId']] = vv['criteria'], True
-    for vv in indicator.x_cpes.get('not_vulnerable', []):
-        criteria_ids[vv['matchCriteriaId']] = vv['criteria'], False
 
-    for match_id, (matchstring, is_vulnerable) in criteria_ids.items():
-        for cpe_name in get_cpe_match(matchstring):
+    vulnerable_criteria_ids = []
+    all_criteria_ids = []
+    for vv in indicator.x_cpes.get("vulnerable", []):
+        vulnerable_criteria_ids.append(vv["matchCriteriaId"])
+        all_criteria_ids.append((vv["criteria"], vv["matchCriteriaId"]))
+    for vv in indicator.x_cpes.get("not_vulnerable", []):
+        all_criteria_ids.append((vv["criteria"], vv["matchCriteriaId"]))
+
+    for match_id, matches in CpeMatchGetter.get_matches_for_cve(
+        cve_id=indicator.name, criteria_ids=all_criteria_ids
+    ):
+        for cpe_name, swid in matches:
             software = parse_software(cpe_name, None)
             softwares.setdefault(cpe_name, software)
             external_references = [
                 {
                     "source_name": "cve",
                     "external_id": indicator.name,
-                    "url": "https://nvd.nist.gov/vuln/detail/"+indicator.name,
+                    "url": "https://nvd.nist.gov/vuln/detail/" + indicator.name,
                 },
                 {
                     "source_name": "cpe",
@@ -72,7 +128,7 @@ def parse_cpe_matches(indicator: Indicator) -> tuple[list[Software], list[Relati
                     external_references=external_references,
                 )
             )
-            if is_vulnerable:
+            if match_id in vulnerable_criteria_ids:
                 relationships.append(
                     Relationship(
                         source_ref=indicator.id,
@@ -89,26 +145,6 @@ def parse_cpe_matches(indicator: Indicator) -> tuple[list[Software], list[Relati
 
     return list(softwares.values()), relationships
 
-@lru_cache(maxsize=None)
-def get_cpe_match(match_string: str)  -> list[str]:
-    matches = retrieve_cpematch(datetime.now(timezone('EST')).date())
-    return matches.get(match_string) or [match_string]
-
-@lru_cache(maxsize=1)
-def retrieve_cpematch(d: date):
-    logging.info("Downloading CPEMatch Feed... %s", config.CPE_MATCH_FEED_URL)
-    resp = requests.get(config.CPE_MATCH_FEED_URL)
-    retval = {}
-    logging.info("Downloaded CPEMatch Feed from %s", config.CPE_MATCH_FEED_URL)
-    with zipfile.ZipFile(io.BytesIO(resp.content)) as zip:
-        with zip.open("nvdcpematch-1.0.json") as f:
-            matches = ijson.items(f, 'matches.item')
-            for count, match in enumerate(matches):
-                match_spec = match["cpe23Uri"]
-                retval[match_spec] = [m["cpe23Uri"] for m in match['cpe_name']]
-            logging.info(f"retrieve_cpematch: {count=}, {len(retval)=}")
-    return retval
-
 
 @lru_cache(maxsize=1000)
 def parse_software(cpename, swid):
@@ -118,8 +154,8 @@ def parse_software(cpename, swid):
         cpe=cpename,
         name=cpename,
         swid=swid,
-        version=cpe_struct['version'],
-        vendor=cpe_struct['vendor'],
+        version=cpe_struct["version"],
+        vendor=cpe_struct["vendor"],
         extensions={
             software_cpe_properties_ExtensionDefinitionSMO.id: {
                 "extension_type": "toplevel-property-extension"
@@ -127,7 +163,7 @@ def parse_software(cpename, swid):
         },
         object_marking_refs=[
             "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
-            "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3"
+            "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3",
         ],
         allow_custom=True,
     )

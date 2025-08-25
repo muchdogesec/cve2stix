@@ -6,21 +6,26 @@ import time
 from stix2.patterns import StringConstant
 
 
-def fetch_url(url, config, callback):
+def fetch_url(url, config, callback, ratelimit_window=30):
     total_results = math.inf
     start_index = 0
-    backoff_time = 10
+    backoff_time = ratelimit_window / 2
     all_responses_content = []
     uri = urlparse(url)
     query = dict(parse_qsl(uri.query))
-    url = url.split('?')[0]
+    url = url.split("?")[0]
+
+    requests_per_window = 5
+    if config.nvd_api_key:
+        requests_per_window = 50
 
     while start_index < total_results:
-        logger.info(f"Calling NVD API `{uri.path}` with startIndex: {start_index}", )
-        query.update({
-            "resultsPerPage": config.results_per_page,
-            "startIndex": start_index
-        })
+        logger.info(
+            f"Calling NVD API `{uri.path}` with startIndex: {start_index}",
+        )
+        query.update(
+            {"resultsPerPage": config.results_per_page, "startIndex": start_index}
+        )
 
         try:
             logger.info(f"Query => {query}")
@@ -40,6 +45,7 @@ def fetch_url(url, config, callback):
             backoff_time *= 1.5
             continue
 
+        backoff_time = ratelimit_window / 2
         content = response.json()
         all_responses_content.append(content)
         total_results = content["totalResults"]
@@ -49,8 +55,7 @@ def fetch_url(url, config, callback):
 
         start_index += content["resultsPerPage"]
         if start_index < total_results:
-            time.sleep(5)
-        backoff_time = 10
+            time.sleep(ratelimit_window / requests_per_window)
     return all_responses_content
 
 

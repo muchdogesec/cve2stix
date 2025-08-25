@@ -8,9 +8,7 @@ import pytz
 from datetime import datetime, timedelta, date
 
 from .config import Config
-from .helper import (
-    get_date_string_nvd_format, clean_filesystem
-)
+from .helper import get_date_string_nvd_format, clean_filesystem
 from .cve import parse_cve_api_response
 from stix2 import parse
 from celery import group, chord
@@ -19,12 +17,19 @@ from .loggings import logger
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from .utils import fetch_url
 from stix2extensions import _extensions as stix_extensions
+
 sys.setrecursionlimit(10000)
 
 
 def fetch_data(start, end, config: Config):
     uri = list(urlsplit(config.nvd_cve_api_endpoint))
-    uri[3] = urlencode(parse_qsl(uri[3]) + [(config.filter_mode+"StartDate", get_date_string_nvd_format(start)), (config.filter_mode+"EndDate", get_date_string_nvd_format(end))])
+    uri[3] = urlencode(
+        parse_qsl(uri[3])
+        + [
+            (config.filter_mode + "StartDate", get_date_string_nvd_format(start)),
+            (config.filter_mode + "EndDate", get_date_string_nvd_format(end)),
+        ]
+    )
     return fetch_url(urlunsplit(uri), config, parse_cve_api_response)
 
 
@@ -36,12 +41,18 @@ def map_marking_definition(config, object_list):
     logger.info("Marking Definition creation end")
     return object_list
 
+
 def map_extensions(config, object_list):
     logger.info("Adding extensions")
-    extensions = [stix_extensions.indicator_vulnerable_cpes_ExtensionDefinitionSMO, stix_extensions.vulnerability_scoring_ExtensionDefinitionSMO, stix_extensions.software_cpe_properties_ExtensionDefinitionSMO]
+    extensions = [
+        stix_extensions.indicator_vulnerable_cpes_ExtensionDefinitionSMO,
+        stix_extensions.vulnerability_scoring_ExtensionDefinitionSMO,
+        stix_extensions.software_cpe_properties_ExtensionDefinitionSMO,
+    ]
     object_list.extend(extensions)
     config.fs.add(extensions)
     return object_list
+
 
 def map_identity(config, object_list):
     logger.info("Marking Identity creation start")
@@ -51,7 +62,8 @@ def map_identity(config, object_list):
     logger.info("Marking Identity creation end")
     return object_list
 
-def _parse_date(d: str|datetime|date):
+
+def _parse_date(d: str | datetime | date):
     if isinstance(d, str):
         d = pytz.utc.localize(datetime.strptime(d, "%Y-%m-%dT%H:%M:%S"))
     elif isinstance(d, datetime):
@@ -60,8 +72,9 @@ def _parse_date(d: str|datetime|date):
         d = datetime(d.year, d.month, d.day, tzinfo=pytz.utc)
     return d
 
-def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
-    
+
+def main(c_start_date=None, c_end_date=None, filename=None, config=Config()):
+
     clean_filesystem(config.file_system)
     params = []
     current_date = _parse_date(config.start_date)
@@ -77,14 +90,13 @@ def main(c_start_date=None, c_end_date=None, filename=None, config = Config()):
         end_date = current_date + timedelta(days=120)
         if end_date > end_date_:
             end_date = end_date_
-        params.append(
-            [start_date, end_date]
-        )
+        params.append([start_date, end_date])
         current_date = end_date
 
-
-    tasks = [cve_syncing_task.s(param[0], param[1], dataclasses.asdict(config)) for param in params]
+    tasks = [
+        cve_syncing_task.s(param[0], param[1], dataclasses.asdict(config))
+        for param in params
+    ]
     res = chord(group(tasks))(preparing_results.s(dataclasses.asdict(config), filename))
     resp = res.get()
     return resp
-

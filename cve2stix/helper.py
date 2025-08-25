@@ -20,6 +20,7 @@ from stix2.serialization import serialize as stix_serialize
 def get_date_string_nvd_format(date):
     return date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
+
 def clean_filesystem(default_path=None):
     config = Config()
     logging.info("Deleting old data from filesystem")
@@ -35,7 +36,8 @@ def clean_filesystem(default_path=None):
             logging.error(f"Failed to delete {file_path}. Reason: {e}")
     logging.info("Deletion done!")
 
+
 def generate_md5_from_list(stix_objects: list) -> str:
-    stix_objects = sorted(stix_objects, key=lambda obj: obj.get('id'))
-    json_str = stix_serialize(stix_objects).encode('utf-8')
+    stix_objects = sorted(stix_objects, key=lambda obj: obj.get("id"))
+    json_str = stix_serialize(stix_objects).encode("utf-8")
     return hashlib.md5(json_str).hexdigest()

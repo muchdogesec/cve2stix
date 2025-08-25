@@ -19,26 +19,18 @@ import os
 import atexit
 
 
-CELERY_RESULT_BACKEND='amqp://',
-app = Celery(
-    'cve2stix', broker=Config.REDIS_URL, backend=Config.REDIS_URL
-)
-app.conf.task_default_queue = 'default'
+app = Celery("cve2stix", broker=Config.REDIS_URL, backend=Config.REDIS_URL)
+app.conf.task_default_queue = "default"
 app.conf.worker_concurrency = 8  # Set the number of worker processes
-app.conf.worker_log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-app.conf.worker_log_file = 'logs/celery.log'  # Specify the log file path
+app.conf.worker_log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+app.conf.worker_log_file = "logs/celery.log"  # Specify the log file path
 app.autodiscover_tasks()
-
-
-@setup_logging.connect
-def config_loggers(*args, **kwargs):
-    from logging.config import dictConfig  # noqa
-    # dictConfig({})
 
 
 @app.task()
 def cve_syncing_task(start, end, config):
     from .main import fetch_data
+
     config = Config(**config)
     fetch_data(start, end, config)
 
@@ -46,6 +38,7 @@ def cve_syncing_task(start, end, config):
 @app.task()
 def preparing_results(task_results, config, filename=None):
     from .main import map_marking_definition, map_identity, map_extensions
+
     config = Config(**config)
     results = []
     results = map_marking_definition(config, results)
@@ -60,16 +53,27 @@ def preparing_results(task_results, config, filename=None):
         logging.info("Not writing any file because no output")
 
 
-def check_online_status(app: Celery=app):
+def check_online_status(app: Celery = app):
     availability_status = app.control.inspect().ping()
     logging.info("celery workers ping: %s", str(availability_status))
     return availability_status
 
+
 def start_celery(path: str, cwd=".", app=app):
     logging.info(f"Starting celery: {path}")
-    args = ["celery", "-A", path, "--workdir", cwd, "worker", "--loglevel", "info", "--purge"]
+    args = [
+        "celery",
+        "-A",
+        path,
+        "--workdir",
+        cwd,
+        "worker",
+        "--loglevel",
+        "info",
+        "--purge",
+    ]
     p = subprocess.Popen(args, stdout=sys.stdout, stderr=sys.stderr)
-    
+
     logging.info(f"Waiting 10 seconds for celery to initialize")
     for i in range(10):
         availability_status = check_online_status(app)
