@@ -7,6 +7,7 @@ from stix2 import Software, Indicator, Relationship
 from pytz import timezone
 from cve2stix import cpe_match
 
+
 def test_unescape_cpe_string_returns_same_string():
     val = cpe_match.unescape_cpe_string(
         "cpe:2.3:a:apache:http_server:2.4.1:*:*:*:*:*:*:*"
