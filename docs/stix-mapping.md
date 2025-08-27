@@ -329,7 +329,7 @@ Using the `matchCriteriaId` a `grouping` object can be created as follows:
 }
 ```
 
-To generate the id of SRO, a UUIDv5 is generated using the namespace `562918ee-d5da-5579-b6a1-fae50cc6bad3` and the `name` values.
+To generate the id of SRO, a UUIDv5 is generated using the namespace `152ecfe1-5015-522b-97e4-86b60c57036d` and the `name` values.
 
 ### Indictor -> Grouping
 
