@@ -313,7 +313,7 @@ Using the `matchCriteriaId` a `grouping` object can be created as follows:
     "type": "grouping",
     "spec_version": "2.1",
     "id": "grouping--<UUID V5>",
-    "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
+    "created_by_ref": "identity--152ecfe1-5015-522b-97e4-86b60c57036d",
     "created": "<matchstring.created>",
     "modified": "<matchstring.lastModified>",
     "name": "<matchstring.matchCriteriaId>",
@@ -321,6 +321,10 @@ Using the `matchCriteriaId` a `grouping` object can be created as follows:
     "context": "unspecified",
     "object_refs": [
         "software--<ALL SOFTWARE OBJECTS CREATED THAT BELONG IN MATCH CRITERIA>"
+    ],
+    "object_marking_refs": [
+        "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
+        "marking-definition--152ecfe1-5015-522b-97e4-86b60c57036d"
     ]
 }
 ```
