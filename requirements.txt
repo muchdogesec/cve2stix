@@ -25,4 +25,4 @@ kombu==5.4.2
 flower==2.0.1
 tqdm==4.67.1
 stix2extensions
-arango_cve_processor @ https://github.com/muchdogesec/arango_cve_processor/archive/9b03b232f659ffd8f07690977479e8fbc9e61081.zip
+arango_cve_processor @ https://github.com/muchdogesec/arango_cve_processor/archive/be1b3a312842ab4398a8d1943b79e7d9245bdd9b.zip
