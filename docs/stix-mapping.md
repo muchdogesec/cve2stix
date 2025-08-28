@@ -346,9 +346,9 @@ A relationship between the Indicator and corresponding Grouping object is made a
     "created": "<grouping created>",
     "modified": "<grouping modified>",
     "relationship_type": "<vulnerable|pattern>-match-string",
-    "source_ref": "grouping--<grouping--STIX OBJECT>",
-    "target_ref": "indicator--<INDICATOR STIX OBJECT>",
-    "description": "<Indicator name> <is vulnerable to|requires> CPEs in <matchCriteriaId>",
+    "source_ref": "indicator--<INDICATOR STIX OBJECT>",
+    "target_ref": "grouping--<GROUPING TIX OBJECT>",
+    "description": "<matchCriteriaId> <is vulnerable to|requires> <Indicator name>",
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
         "<MARKING DEFINITION IMPORTED>"
