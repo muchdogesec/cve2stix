@@ -20,7 +20,6 @@ urllib3==2.5.0
 python-dotenv
 eventlet==0.38.1
 celery==5.3.4
-ijson==3.3.0
 redis==5.2.1
 kombu==5.4.2
 flower==2.0.1

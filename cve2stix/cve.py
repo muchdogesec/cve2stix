@@ -47,7 +47,9 @@ class CVE:
 
     @property
     def objects(self):
-        objects = [self.vulnerability] + self.relationships + self.softwares + self.groupings
+        objects = (
+            [self.vulnerability] + self.relationships + self.softwares + self.groupings
+        )
         if self.indicator:
             objects.append(self.indicator)
         return objects

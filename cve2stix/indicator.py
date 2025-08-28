@@ -1,16 +1,8 @@
-from dataclasses import dataclass, field
-from datetime import datetime
-import json
-import logging
-from pathlib import Path
-import re
-from typing import List
 import uuid
-from stix2 import Vulnerability, Software, Indicator, Relationship
+from stix2 import Vulnerability, Indicator, Relationship
 from .config import DEFAULT_CONFIG as config
 from stix2extensions._extensions import (
     indicator_vulnerable_cpes_ExtensionDefinitionSMO,
-    vulnerability_scoring_ExtensionDefinitionSMO,
 )
 
 from cve2stix.utils import unescape_cpe_string

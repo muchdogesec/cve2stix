@@ -1,9 +1,7 @@
 from functools import lru_cache
-import logging
 import requests
 import json
 import os
-import redis
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path

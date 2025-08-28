@@ -42,7 +42,7 @@ def fetch_url(url, config, callback, ratelimit_window=30):
                 "Got ConnectionError. Backing off for %d seconds.", backoff_time
             )
             time.sleep(backoff_time)
-            backoff_time = min(backoff_time * 1.5, ratelimit_window*20)
+            backoff_time = min(backoff_time * 1.5, ratelimit_window * 20)
             continue
 
         backoff_time = ratelimit_window / 2

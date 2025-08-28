@@ -5,13 +5,9 @@ Contains logic for storing parsed stix objects.
 import json
 import os
 import logging
-from stix2 import FileSystemStore, Bundle
-from stix2.datastore import DataSourceError
-from .loggings import logger
-from .config import Config
+from stix2 import Bundle
 import uuid
 from .helper import generate_md5_from_list
-from uuid import UUID
 from .config import DEFAULT_CONFIG as config
 
 

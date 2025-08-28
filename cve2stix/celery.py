@@ -1,12 +1,10 @@
 import logging
 from celery import Celery
-from celery.signals import setup_logging  # noqa
 from .stix_store import store_cve_in_bundle
 from stix2.datastore.filters import Filter
 from .config import Config
 
 import logging
-import os
 import subprocess
 import sys
 import time
