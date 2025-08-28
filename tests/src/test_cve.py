@@ -295,7 +295,7 @@ def example_cve_response():
 
 def test_from_dict_creates_cve(example_cve):
     with patch("cve2stix.cpe_match.parse_cpe_matches") as mock_parse_softwares:
-        mock_parse_softwares.return_value = [dict(a=1), dict(b=2)], [
+        mock_parse_softwares.return_value = [dict(group=1)], [dict(software_a=1), dict(b=2)], [
             dict(c=3),
             dict(b=2),
         ]
@@ -306,8 +306,9 @@ def test_from_dict_creates_cve(example_cve):
         assert cve_obj.indicator is None or isinstance(
             cve_obj.indicator, cve_module.Indicator
         )
-        assert cve_obj.softwares == mock_parse_softwares.return_value[0]
-        for rel in mock_parse_softwares.return_value[1]:
+        assert cve_obj.groupings == mock_parse_softwares.return_value[0]
+        assert cve_obj.softwares == mock_parse_softwares.return_value[1]
+        for rel in mock_parse_softwares.return_value[2]:
             assert rel in cve_obj.relationships
 
 
@@ -325,6 +326,7 @@ def test_cve_objects():
         cve_obj.vulnerability,
         *cve_obj.relationships,
         *cve_obj.softwares,
+        *cve_obj.groupings,
         cve_obj.indicator,
     ]
 
@@ -391,16 +393,21 @@ def test_parse_cve_api_response(example_cve_response):
     with patch("stix2.FileSystemStore.add", side_effect=objects.append) as mock_fs_add:
         cve_module.parse_cve_api_response(example_cve_response, cve_module.config)
         mock_fs_add.assert_called()
+    print({obj["id"] for obj in objects})
     assert {obj["id"] for obj in objects}.issuperset(
         {
-            "vulnerability--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
-            "relationship--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
-            "indicator--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
-            "vulnerability--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
-            "relationship--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
-            # "relationship--61075c45-abb7-4b60-9323-0c97610a0620", # relationship id is not deterministic
-            # "relationship--4286e0b1-8126-4477-a278-6e648b783234",
-            "software--6408d221-2b8a-521c-af47-7fc07eb33811",
             "indicator--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
+            "relationship--59e17775-4e6e-546b-b849-c9bed4cdd65c",
+            "relationship--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
+            "vulnerability--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
+            "vulnerability--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
+            "indicator--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
+            "relationship--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
+            "relationship--b48a89cd-6c48-5a7d-960e-16e01c2d07e5",
+            "software--3114e670-1bc4-5bc1-8458-9f302d1891e2",
+            "grouping--8eade122-52a7-50d9-9626-aaa520f1469b",
+            "relationship--38377b04-e422-53d3-81db-b34e4bbfb60e",
+            "grouping--9a60b644-bd0f-5bd1-b352-cae9187f6d06",
+            "grouping--8d9f263a-29d7-5456-8fbf-d5f5872f0097",
         }
     )

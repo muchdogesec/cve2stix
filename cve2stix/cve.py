@@ -9,7 +9,7 @@ import logging
 import re
 from typing import List
 import uuid
-from stix2 import Vulnerability, Software, Indicator, Relationship
+from stix2 import Vulnerability, Software, Indicator, Relationship, Grouping
 
 from cve2stix import cpe_match
 from .config import DEFAULT_CONFIG as config, Config
@@ -27,6 +27,7 @@ class CVE:
     indicator: "Indicator | None" = None
     # CVE relationship between vulnerability and indicator
     softwares: List[Software] = field(default_factory=list)
+    groupings: List[Grouping] = field(default_factory=list)
     relationships: List[Relationship] = field(default_factory=list)
 
     @classmethod
@@ -38,14 +39,15 @@ class CVE:
         if indicator:
             cve.indicator = indicator[0]
             cve.relationships.append(indicator[1])
-        softwares, rels = cpe_match.parse_cpe_matches(cve.indicator)
+        groupings, softwares, rels = cpe_match.parse_cpe_matches(cve.indicator)
         cve.relationships.extend(rels)
         cve.softwares.extend(softwares)
+        cve.groupings.extend(groupings)
         return cve
 
     @property
     def objects(self):
-        objects = [self.vulnerability] + self.relationships + self.softwares
+        objects = [self.vulnerability] + self.relationships + self.softwares + self.groupings
         if self.indicator:
             objects.append(self.indicator)
         return objects
