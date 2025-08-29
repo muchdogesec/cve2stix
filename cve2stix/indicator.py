@@ -54,10 +54,10 @@ def parse_cve_indicator(
         created=vulnerability["created"],
         created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
         modified=vulnerability["modified"],
-        description=f"The Indicator contains a pattern that detects {indicator.name}",
+        description=f"{indicator.name} affects products identified by the CPEs in the Indicator objects pattern",
         relationship_type="x-cpe-match",
-        source_ref=indicator,
-        target_ref=vulnerability,
+        target_ref=indicator,
+        source_ref=vulnerability,
         object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF]
         + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
         external_references=[
