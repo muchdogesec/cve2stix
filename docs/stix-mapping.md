@@ -192,10 +192,10 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
     "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
-    "relationship_type": "detects",
-    "source_ref": "indicator--<INDICATOR STIX OBJECT>",
-    "target_ref": "vulnerability--<VULNERABILITY STIX OBJECT>",
-    "description": "The Indicator contains a pattern that detects <cve.id>",
+    "relationship_type": "cpe-match",
+    "source_ref": "vulnerability--<VULNERABILITY STIX OBJECT>",
+    "target_ref": "indicator--<INDICATOR STIX OBJECT>",
+    "description": "<CVE-ID> affects products identified by the CPEs in the Indicator objects pattern",
     "external_references": [
         {
             "source_name": "cve",
@@ -316,7 +316,7 @@ Using the `matchCriteriaId` a `grouping` object can be created as follows:
     "created_by_ref": "identity--152ecfe1-5015-522b-97e4-86b60c57036d",
     "created": "<matchstring.created>",
     "modified": "<matchstring.lastModified>",
-    "name": "<matchstring.matchCriteriaId>",
+    "name": "<matchstring>",
     "revoked": "<is false if matchstring.status is not Active>",
     "context": "unspecified",
     "object_refs": [
@@ -325,11 +325,37 @@ Using the `matchCriteriaId` a `grouping` object can be created as follows:
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
         "marking-definition--152ecfe1-5015-522b-97e4-86b60c57036d"
+    ],
+    "external_references": [
+        {
+            "source_name": "matchCriteriaId",
+            "external_id": "<matchCriteriaId>"
+        },
+        {
+            "source_name": "pattern",
+            "external_id": "<matchstring>"
+        },
+        {
+            "source_name": "versionStartIncluding",
+            "external_id": "<versionStartIncluding>"
+        },
+        {
+            "source_name": "versionStartExcluding",
+            "external_id": "<versionStartExcluding>"
+        },
+        {
+            "source_name": "versionEndIncluding",
+            "external_id": "<versionEndIncluding>"
+        },
+        {
+            "source_name": "versionEndExcluding",
+            "external_id": "<versionEndExcluding>"
+        }
     ]
 }
 ```
 
-To generate the id of SRO, a UUIDv5 is generated using the namespace `152ecfe1-5015-522b-97e4-86b60c57036d` and the `name` values.
+To generate the id of SRO, a UUIDv5 is generated using the namespace `152ecfe1-5015-522b-97e4-86b60c57036d` and the `matchstring` values.
 
 ### Indictor -> Grouping
 
@@ -345,10 +371,10 @@ A relationship between the Indicator and corresponding Grouping object is made a
     "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
     "created": "<grouping created>",
     "modified": "<grouping modified>",
-    "relationship_type": "<vulnerable|pattern>-match-string",
+    "relationship_type": "<x-cpes-vulnerable> OR <x-cpes-not-vulnerable>",
     "source_ref": "indicator--<INDICATOR STIX OBJECT>",
     "target_ref": "grouping--<GROUPING TIX OBJECT>",
-    "description": "<matchCriteriaId> <is vulnerable to|requires> <Indicator name>",
+    "description": "<matchCriteriaId> <is vulnerable to> <is not vulnerable> to <Indicator name>",
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
         "<MARKING DEFINITION IMPORTED>"
@@ -361,8 +387,11 @@ A relationship between the Indicator and corresponding Grouping object is made a
         },
         {
             "source_name": "cpe",
-            "external_id": "matchCriteriaId",
-            "url": "<matchCriteriaId>"
+            "external_id": "matchCriteriaId"
+        },
+        {
+            "source_name": "pattern",
+            "external_id": "<matchstring>"
         }
     ]
 }
