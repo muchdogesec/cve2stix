@@ -210,7 +210,7 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
 }
 ```
 
-## Indicator -> Grououng
+## Indicator -> Grouping
 
 Inside the Indicator is `x_cpes` property, e.g. 
 
@@ -356,6 +356,8 @@ Using the `matchCriteriaId` a `grouping` object can be created as follows:
 ```
 
 To generate the id of SRO, a UUIDv5 is generated using the namespace `152ecfe1-5015-522b-97e4-86b60c57036d` and the `matchstring` values.
+
+Note, sometimes there are no `matches` returned by the CPEMatch endpoint. In these examples, no software objects are created (meaning grouping object would have empty `object_refs` and thus fail to generate as this is required field). As such, in this instance, grouping objects are created with a dummy software object `software--11111111-1111-4111-8111-111111111111` that does not exist. When `matches` are discovered later, this reference is removed and correct software (CPE) references are added (using arango_cve_processor)
 
 ### Indictor -> Grouping
 
