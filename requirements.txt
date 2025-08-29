@@ -20,9 +20,9 @@ urllib3==2.5.0
 python-dotenv
 eventlet==0.38.1
 celery==5.3.4
-ijson==3.3.0
 redis==5.2.1
 kombu==5.4.2
 flower==2.0.1
 tqdm==4.67.1
 stix2extensions
+arango_cve_processor @ https://github.com/muchdogesec/arango_cve_processor/archive/38ac1d5c050f1a6e6c6339050b967dc934b9b3a0.zip
