@@ -332,7 +332,7 @@ Using the `matchCriteriaId` a `grouping` object can be created as follows:
             "external_id": "<matchCriteriaId>"
         },
         {
-            "source_name": "pattern",
+            "source_name": "matchstring",
             "external_id": "<matchstring>"
         },
         {
@@ -390,7 +390,7 @@ A relationship between the Indicator and corresponding Grouping object is made a
             "external_id": "matchCriteriaId"
         },
         {
-            "source_name": "pattern",
+            "source_name": "matchstring",
             "external_id": "<matchstring>"
         }
     ]
