@@ -54,7 +54,6 @@ def test_parse_cpe_matches(indicator_with_cpes):
         "relationship--3ad3537e-cc20-571d-9248-b63c23fc0b2b",
     }
 
-
 @pytest.fixture
 def indicator_with_cpes():
     return Indicator(
