@@ -295,10 +295,14 @@ def example_cve_response():
 
 def test_from_dict_creates_cve(example_cve):
     with patch("cve2stix.cpe_match.parse_cpe_matches") as mock_parse_softwares:
-        mock_parse_softwares.return_value = [dict(group=1)], [dict(software_a=1), dict(b=2)], [
-            dict(c=3),
-            dict(b=2),
-        ]
+        mock_parse_softwares.return_value = (
+            [dict(group=1)],
+            [dict(software_a=1), dict(b=2)],
+            [
+                dict(c=3),
+                dict(b=2),
+            ],
+        )
         cve_obj = cve_module.CVE.from_dict(example_cve)
         assert isinstance(cve_obj, cve_module.CVE)
         assert isinstance(cve_obj.vulnerability, cve_module.Vulnerability)
@@ -394,20 +398,18 @@ def test_parse_cve_api_response(example_cve_response):
         cve_module.parse_cve_api_response(example_cve_response, cve_module.config)
         mock_fs_add.assert_called()
     print({obj["id"] for obj in objects})
-    assert {obj["id"] for obj in objects}.issuperset(
-        {
-            "indicator--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
-            "relationship--59e17775-4e6e-546b-b849-c9bed4cdd65c",
-            "relationship--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
-            "vulnerability--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
-            "vulnerability--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
-            "indicator--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
-            "relationship--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
-            "relationship--b48a89cd-6c48-5a7d-960e-16e01c2d07e5",
-            "software--3114e670-1bc4-5bc1-8458-9f302d1891e2",
-            "grouping--8eade122-52a7-50d9-9626-aaa520f1469b",
-            "relationship--38377b04-e422-53d3-81db-b34e4bbfb60e",
-            "grouping--9a60b644-bd0f-5bd1-b352-cae9187f6d06",
-            "grouping--8d9f263a-29d7-5456-8fbf-d5f5872f0097",
-        }
-    )
+    assert {obj["id"] for obj in objects} == {
+        "vulnerability--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
+        "vulnerability--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
+        "relationship--9607faa4-6818-53a0-9e17-b4e0f3773e7f",
+        "relationship--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
+        "indicator--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
+        "relationship--d3c148a4-8382-54cd-bb63-9c4e2cc8a248",
+        "grouping--8eade122-52a7-50d9-9626-aaa520f1469b",
+        "relationship--5cc289f4-0e0a-5753-8a35-bf79f2bededc",
+        "grouping--8d9f263a-29d7-5456-8fbf-d5f5872f0097",
+        "relationship--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
+        "indicator--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
+        "software--3114e670-1bc4-5bc1-8458-9f302d1891e2",
+        "grouping--9a60b644-bd0f-5bd1-b352-cae9187f6d06",
+    }

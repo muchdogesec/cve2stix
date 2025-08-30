@@ -192,7 +192,7 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
     "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
-    "relationship_type": "cpe-match",
+    "relationship_type": "x-cpe-match",
     "source_ref": "vulnerability--<VULNERABILITY STIX OBJECT>",
     "target_ref": "indicator--<INDICATOR STIX OBJECT>",
     "description": "<CVE-ID> affects products identified by the CPEs in the Indicator objects pattern",

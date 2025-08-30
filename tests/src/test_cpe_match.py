@@ -41,14 +41,18 @@ def test_parse_cpe_matches(indicator_with_cpes):
     }
     assert set(
         itertools.chain(*(grouping["object_refs"] for grouping in groupings))
-    ) == {
+    ).difference(["software--11111111-1111-4111-8111-111111111111"]) == {
         software["id"] for software in softwares
     }, "all software must appear in group.object_refs"
     assert (
-        len(relationships) == 6
-    ), "4 groups (2 vulnerable) (4 in pattern relationships) and 2 vulnerable relationships expected"
-    print({r["id"] for r in relationships})
-
+        len(relationships) == 4
+    ), "4 groups, 2 vulnerable and 2 non-vulnerable relationships expected"
+    assert {r["id"] for r in relationships} == {
+        "relationship--92a10487-063f-51b5-a9e3-b705df6dc962",
+        "relationship--d1922af7-8ee0-5681-94d6-6ce4def160b3",
+        "relationship--96943221-db48-5757-87b9-942c08212129",
+        "relationship--3ad3537e-cc20-571d-9248-b63c23fc0b2b",
+    }
 
 @pytest.fixture
 def indicator_with_cpes():
