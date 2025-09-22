@@ -16,7 +16,7 @@ def get_matches_for_cve(cve_id):
 
     def parse(response, *args):
         for match_data in response.get("matchStrings", []):
-            criteria_data.append(match_data['matchString'])
+            criteria_data.append(match_data["matchString"])
 
     fetch_url(
         url=config.CPE_MATCH_FEED_URL + f"?cveId={cve_id}",
