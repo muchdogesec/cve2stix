@@ -96,6 +96,7 @@ class Config:
     REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
 
     CPE_MATCH_FEED_URL = "https://services.nvd.nist.gov/rest/json/cpematch/2.0"
+    SOURCE_IDENTIFIERS_URL = "https://services.nvd.nist.gov/rest/json/source/2.0"
 
     @property
     def fs(self):

@@ -7,11 +7,17 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import logging
 import re
-from typing import List
+from typing import ClassVar, List
 import uuid
-from stix2 import Vulnerability, Software, Indicator, Relationship, Grouping
+from stix2 import Vulnerability, Software, Indicator, Relationship, Grouping, Identity
 
 from cve2stix import cpe_match
+
+from functools import lru_cache
+from .config import DEFAULT_CONFIG as config
+from stix2 import Identity
+
+from cve2stix.utils import fetch_url
 from .config import DEFAULT_CONFIG as config, Config
 from stix2extensions._extensions import vulnerability_scoring_ExtensionDefinitionSMO
 
@@ -20,22 +26,28 @@ from stix2.datastore import DataSourceError
 
 from .loggings import logger
 
+def parse_date(date_str: str):
+    return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%f")
+
 
 @dataclass
 class CVE:
     vulnerability: Vulnerability
+    source: Identity
     indicator: "Indicator | None" = None
     # CVE relationship between vulnerability and indicator
     softwares: List[Software] = field(default_factory=list)
     groupings: List[Grouping] = field(default_factory=list)
     relationships: List[Relationship] = field(default_factory=list)
+    source_map: ClassVar[dict[str, Identity]]
 
     @classmethod
-    def from_dict(cls, data) -> "CVE":
-        data = data.get("cve", data)
-        vulnerability = cls.parse_cve_vulnerability(data)
-        cve = CVE(vulnerability=vulnerability)
-        indicator = parse_cve_indicator(data, vulnerability)
+    def from_dict(cls, cve_data) -> "CVE":
+        cve_data = cve_data.get("cve", cve_data)
+        identity = cls.source_map.get(cve_data["sourceIdentifier"])
+        vulnerability = cls.parse_cve_vulnerability(cve_data, identity.id)
+        cve = CVE(vulnerability=vulnerability, source=identity)
+        indicator = parse_cve_indicator(cve_data, vulnerability)
         if indicator:
             cve.indicator = indicator[0]
             cve.relationships.append(indicator[1])
@@ -48,7 +60,10 @@ class CVE:
     @property
     def objects(self):
         objects = (
-            [self.vulnerability] + self.relationships + self.softwares + self.groupings
+            [self.vulnerability, self.source]
+            + self.relationships
+            + self.softwares
+            + self.groupings
         )
         if self.indicator:
             objects.append(self.indicator)
@@ -59,15 +74,15 @@ class CVE:
         return self.vulnerability.name
 
     @classmethod
-    def parse_cve_vulnerability(cls, cve) -> Vulnerability:
+    def parse_cve_vulnerability(cls, cve, created_by_ref) -> Vulnerability:
         cve_id = cve["id"]
         vulnerability_dict = {
             "id": "vulnerability--{}".format(
                 str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))
             ),
-            "created_by_ref": config.CVE2STIX_IDENTITY_REF.get("id"),
-            "created": datetime.strptime(cve["published"], "%Y-%m-%dT%H:%M:%S.%f"),
-            "modified": datetime.strptime(cve["lastModified"], "%Y-%m-%dT%H:%M:%S.%f"),
+            "created_by_ref": created_by_ref,
+            "created": parse_date(cve["published"]),
+            "modified": parse_date(cve["lastModified"]),
             "name": cve["id"],
             "description": cls.get_vulnerability_description(cve),
             "external_references": [
@@ -122,7 +137,7 @@ class CVE:
                     "description": ",".join(reference.get("tags", [])),
                 }
             )
-        for key in ["vulnStatus", "sourceIdentifier"]:
+        for key in ["vulnStatus"]:
             references.append(
                 {
                     "source_name": key,
@@ -168,6 +183,7 @@ class CVE:
 
 def parse_cve_api_response(cve_content, config: Config) -> List[CVE]:
     parsed_response = []
+    CVE.source_map = fetch_source_map()
     for cve_item in cve_content["vulnerabilities"]:
         cve = CVE.from_dict(cve_item)
         logger.info(f"CVE-> {cve.name}")
@@ -175,3 +191,39 @@ def parse_cve_api_response(cve_content, config: Config) -> List[CVE]:
             with contextlib.suppress(DataSourceError):
                 config.fs.add(object)
     return parsed_response
+
+
+def fetch_source_map():
+    sources: dict[str, Identity] = {}
+    def parse(response, *args):
+        for source in response.get("sources", []):
+            parsed_source = Identity(
+                type="identity",
+                spec_version="2.1",
+                id="identity--{}".format(
+                    str(uuid.uuid5(config.namespace, source["contactEmail"]))
+                ),
+                created_by_ref="identity--562918ee-d5da-5579-b6a1-fae50cc6bad3",
+                created=parse_date(source["created"]),
+                modified=parse_date(source["lastModified"]),
+                name=source["name"],
+                identity_class="organization",
+                contact_information=source["contactEmail"],
+                object_marking_refs=[
+                    "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
+                    "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3",
+                ],
+                external_references=[
+                    dict(source_name="sourceIdentifier", external_id=identifier)
+                    for identifier in source["sourceIdentifiers"]
+                ],
+            )
+            for identifier in source["sourceIdentifiers"]:
+                sources[identifier] = parsed_source
+
+    fetch_url(
+        url=config.SOURCE_IDENTIFIERS_URL,
+        config=config,
+        callback=parse,
+    )
+    return sources
