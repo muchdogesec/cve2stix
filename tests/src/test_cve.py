@@ -320,7 +320,9 @@ def test_from_dict_creates_cve(example_cve, source_identity):
 
 
 def test_cve_objects(source_identity):
-    cve_obj = cve_module.CVE(cve_module.Vulnerability(name="vuln"), source=source_identity)
+    cve_obj = cve_module.CVE(
+        cve_module.Vulnerability(name="vuln"), source=source_identity
+    )
     cve_obj.softwares.extend([dict(a=1), dict(b=2)])
     cve_obj.relationships.extend([dict(c=3), dict(b=2)])
     assert cve_obj.objects == [
@@ -512,7 +514,7 @@ def source_identity():
         "type": "identity",
         "spec_version": "2.1",
         "id": "identity--a9546a6d-7e78-5367-847d-8d10e8a77bc9",
-        "created_by_ref": "identity--562918ee-d5da-5579-b6a1-fae50cc6bad3",
+        "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
         "created": "2022-03-28T18:15:08.113Z",
         "modified": "2022-03-28T18:15:08.113Z",
         "name": "VulDB",
