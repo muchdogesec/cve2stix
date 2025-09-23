@@ -203,7 +203,7 @@ def fetch_source_map():
                 id="identity--{}".format(
                     str(uuid.uuid5(config.namespace, source["contactEmail"]))
                 ),
-                created_by_ref="identity--562918ee-d5da-5579-b6a1-fae50cc6bad3",
+                created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
                 created=parse_date(source["created"]),
                 modified=parse_date(source["lastModified"]),
                 name=source["name"],
