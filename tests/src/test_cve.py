@@ -315,6 +315,7 @@ def test_from_dict_creates_cve(example_cve, source_identity):
         )
         assert cve_obj.groupings == mock_parse_softwares.return_value[0]
         assert cve_obj.softwares == mock_parse_softwares.return_value[1]
+        assert cve_obj.deprecations == mock_parse_softwares.return_value[3]
         for rel in mock_parse_softwares.return_value[2]:
             assert rel in cve_obj.relationships
 
@@ -325,11 +326,13 @@ def test_cve_objects(source_identity):
     )
     cve_obj.softwares.extend([dict(a=1), dict(b=2)])
     cve_obj.relationships.extend([dict(c=3), dict(b=2)])
+    cve_obj.deprecations = [dict(dep1='dep1')]
     assert cve_obj.objects == [
         cve_obj.vulnerability,
         source_identity,
         *cve_obj.relationships,
         *cve_obj.softwares,
+        *cve_obj.deprecations,
     ]
     cve_obj.indicator = dict(e=9)
     assert cve_obj.objects == [
@@ -338,6 +341,7 @@ def test_cve_objects(source_identity):
         *cve_obj.relationships,
         *cve_obj.softwares,
         *cve_obj.groupings,
+        *cve_obj.deprecations,
         cve_obj.indicator,
     ]
 
