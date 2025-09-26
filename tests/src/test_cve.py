@@ -304,6 +304,9 @@ def test_from_dict_creates_cve(example_cve, source_identity):
                 dict(c=3),
                 dict(b=2),
             ],
+            [
+                dict(deprecation=1)
+            ]
         )
         cve_module.CVE.source_map = {"cna@vuldb.com": parse_stix(source_identity)}
         cve_obj = cve_module.CVE.from_dict(example_cve)
@@ -326,7 +329,7 @@ def test_cve_objects(source_identity):
     )
     cve_obj.softwares.extend([dict(a=1), dict(b=2)])
     cve_obj.relationships.extend([dict(c=3), dict(b=2)])
-    cve_obj.deprecations = [dict(dep1='dep1')]
+    cve_obj.deprecations = [dict(dep1="dep1")]
     assert cve_obj.objects == [
         cve_obj.vulnerability,
         source_identity,
@@ -411,6 +414,12 @@ def test_parse_cve_vulnerability_builds_correct_vuln(example_cve, source_identit
                 "extension_type": "toplevel-property-extension"
             }
         },
+        "x_opencti_cvss_base_score": 6.3,
+        "x_opencti_cvss_base_severity": "MEDIUM",
+        "x_opencti_cvss_v2_base_severity": "MEDIUM",
+        "x_opencti_cvss_v2_base_score": 6.5,
+        "x_opencti_cvss_v2_vector_string": "AV:N/AC:L/Au:S/C:P/I:P/A:P",
+        "x_opencti_cvss_vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
         "x_cvss": {
             "v3_1": {
                 "type": "Secondary",

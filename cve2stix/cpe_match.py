@@ -30,7 +30,7 @@ def parse_cpe_matches(
     indicator: Indicator,
 ) -> tuple[list[Grouping], list[Software], list[Relationship]]:
     if not indicator:
-        return [], [], []
+        return [], [], [], []
     logging.info("parse cpe matches for %s", indicator.name)
     softwares = {}
     relationships = []
