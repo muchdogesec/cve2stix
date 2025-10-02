@@ -135,7 +135,7 @@ They look like this
     "id": "identity--<UUIDv5>",
     "created_by_ref": "identity--<IMPORTED IDENTITY OBJECT>",
     "created": "<created VALUE FROM NVD>",
-    "modified": "<lastModified>",
+    "modified": "highest <lastModified>",
     "name": "<name>",
     "identity_class": "organization",
     "contact_information": "<contactEmail>",
@@ -147,6 +147,14 @@ They look like this
         {
             "source_name": "sourceIdentifier",
             "external_id": "<sourceIdentifier ITEM 2>"
+        },
+        {
+            "source_name": "v3AcceptanceLevel",
+            "external_id": "v3AcceptanceLevel description>"
+        },
+        {
+            "source_name": "cweAcceptanceLevel",
+            "external_id": "<cweAcceptanceLevel description>"
         }
     ],
     "object_marking_refs": [
