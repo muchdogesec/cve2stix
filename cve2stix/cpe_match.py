@@ -42,5 +42,5 @@ def parse_cpe_matches(
         softwares.update({obj["id"]: obj for obj in objects[1:]})
         groupings.append(objects[0])
         relationships.extend(relate_indicator(objects[0], indicator))
-        deprecations.extend(parse_deprecations(softwares.values()))
+        deprecations.extend(parse_deprecations(softwares.values(), add_arango_props=False))
     return groupings, list(softwares.values()), relationships, deprecations
