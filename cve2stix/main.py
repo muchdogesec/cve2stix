@@ -48,6 +48,7 @@ def map_extensions(config, object_list):
         stix_extensions.indicator_vulnerable_cpes_ExtensionDefinitionSMO,
         stix_extensions.vulnerability_scoring_ExtensionDefinitionSMO,
         stix_extensions.software_cpe_properties_ExtensionDefinitionSMO,
+        stix_extensions.vulnerability_opencti_ExtensionDefinitionSMO,
     ]
     object_list.extend(extensions)
     config.fs.add(extensions)

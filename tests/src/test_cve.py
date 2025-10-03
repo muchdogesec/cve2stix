@@ -304,9 +304,7 @@ def test_from_dict_creates_cve(example_cve, source_identity):
                 dict(c=3),
                 dict(b=2),
             ],
-            [
-                dict(deprecation=1)
-            ]
+            [dict(deprecation=1)],
         )
         cve_module.CVE.source_map = {"cna@vuldb.com": parse_stix(source_identity)}
         cve_obj = cve_module.CVE.from_dict(example_cve)
@@ -412,33 +410,49 @@ def test_parse_cve_vulnerability_builds_correct_vuln(example_cve, source_identit
         "extensions": {
             "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
                 "extension_type": "toplevel-property-extension"
-            }
+            },
+            "extension-definition--ec658473-1319-53b4-879f-488e47805554": {
+                "extension_type": "toplevel-property-extension"
+            },
         },
-        "x_opencti_cvss_base_score": 6.3,
+        "x_opencti_cvss_base_score": 6.5,
         "x_opencti_cvss_base_severity": "MEDIUM",
         "x_opencti_cvss_v2_base_severity": "MEDIUM",
         "x_opencti_cvss_v2_base_score": 6.5,
         "x_opencti_cvss_v2_vector_string": "AV:N/AC:L/Au:S/C:P/I:P/A:P",
-        "x_opencti_cvss_vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
+        "x_opencti_cvss_vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
         "x_cvss": {
-            "v3_1": {
-                "type": "Secondary",
-                "source": "cna@vuldb.com",
-                "exploitability_score": 2.8,
-                "impact_score": 3.4,
-                "vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
-                "base_score": 6.3,
-                "base_severity": "MEDIUM",
-            },
-            "v2_0": {
-                "type": "Secondary",
-                "source": "cna@vuldb.com",
-                "exploitability_score": 8.0,
-                "impact_score": 6.4,
-                "vector_string": "AV:N/AC:L/Au:S/C:P/I:P/A:P",
-                "base_score": 6.5,
-                "base_severity": "MEDIUM",
-            },
+            "v3_1": [
+                {
+                    "type": "Primary",
+                    "source": "nvd@nist.gov",
+                    "exploitability_score": 2.8,
+                    "impact_score": 3.6,
+                    "vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+                    "base_score": 6.5,
+                    "base_severity": "MEDIUM",
+                },
+                {
+                    "type": "Secondary",
+                    "source": "cna@vuldb.com",
+                    "exploitability_score": 2.8,
+                    "impact_score": 3.4,
+                    "vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
+                    "base_score": 6.3,
+                    "base_severity": "MEDIUM",
+                },
+            ],
+            "v2_0": [
+                {
+                    "type": "Secondary",
+                    "source": "cna@vuldb.com",
+                    "exploitability_score": 8.0,
+                    "impact_score": 6.4,
+                    "vector_string": "AV:N/AC:L/Au:S/C:P/I:P/A:P",
+                    "base_score": 6.5,
+                    "base_severity": "MEDIUM",
+                }
+            ],
         },
     }
 
@@ -453,23 +467,38 @@ def test_parse_other_references_includes_cwe_and_references(example_cve):
 
 def test_parse_cvss_metrics_returns_both_v3_and_v2(example_cve):
     metrics = cve_module.CVE.parse_cvss_metrics(example_cve["cve"])
-    assert metrics["v3_1"] == {
-        "type": "Secondary",
-        "source": "cna@vuldb.com",
-        "exploitability_score": 2.8,
-        "impact_score": 3.4,
-        "vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
-        "base_score": 6.3,
-        "base_severity": "MEDIUM",
-    }
-    assert metrics["v2_0"] == {
-        "type": "Secondary",
-        "source": "cna@vuldb.com",
-        "exploitability_score": 8.0,
-        "impact_score": 6.4,
-        "vector_string": "AV:N/AC:L/Au:S/C:P/I:P/A:P",
-        "base_score": 6.5,
-        "base_severity": "MEDIUM",
+    assert metrics == {
+        "v3_1": [
+            {
+                "type": "Primary",
+                "source": "nvd@nist.gov",
+                "exploitability_score": 2.8,
+                "impact_score": 3.6,
+                "vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+                "base_score": 6.5,
+                "base_severity": "MEDIUM",
+            },
+            {
+                "type": "Secondary",
+                "source": "cna@vuldb.com",
+                "exploitability_score": 2.8,
+                "impact_score": 3.4,
+                "vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
+                "base_score": 6.3,
+                "base_severity": "MEDIUM",
+            },
+        ],
+        "v2_0": [
+            {
+                "type": "Secondary",
+                "source": "cna@vuldb.com",
+                "exploitability_score": 8.0,
+                "impact_score": 6.4,
+                "vector_string": "AV:N/AC:L/Au:S/C:P/I:P/A:P",
+                "base_score": 6.5,
+                "base_severity": "MEDIUM",
+            }
+        ],
     }
 
 
@@ -529,7 +558,7 @@ def source_identity():
         "id": "identity--a9546a6d-7e78-5367-847d-8d10e8a77bc9",
         "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
         "created": "2022-03-28T18:15:08.113Z",
-        "modified": "2022-03-28T18:15:08.113Z",
+        "modified": "2025-10-03T00:00:21.467Z",
         "name": "VulDB",
         "identity_class": "organization",
         "contact_information": "cna@vuldb.com",
@@ -539,6 +568,8 @@ def source_identity():
                 "source_name": "sourceIdentifier",
                 "external_id": "1af790b2-7ee1-4545-860a-a788eba489b5",
             },
+            {"source_name": "v3AcceptanceLevel", "external_id": "Provider"},
+            {"source_name": "cweAcceptanceLevel", "external_id": "Provider"},
         ],
         "object_marking_refs": [
             "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
