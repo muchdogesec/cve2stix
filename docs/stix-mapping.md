@@ -64,7 +64,10 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
     "extensions": {
         "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
             "extension_type": "toplevel-property-extension"
-        }
+        },
+        "extension-definition--ec658473-1319-53b4-879f-488e47805554": {
+            "extension_type": "toplevel-property-extension"
+        },   
     },
     "x_cvss": {
         "v3_1": {
@@ -76,7 +79,12 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "source": "<VALUE>",
             "type": "<VALUE>"
         }
-    }
+    },
+    "x_opencti_cvss_vector_string": "<VALUE>",
+    "x_opencti_cvss_v2_base_score": "<VALUE>",
+    "x_opencti_cvss_v2_vector_string": "<VALUE>",
+    "x_opencti_cvss_base_score": "<VALUE>"
+
 }
 ```
 
@@ -164,7 +172,7 @@ They look like this
 }
 ```
 
-UUIDv5 logic; `namespace` = 562918ee-d5da-5579-b6a1-fae50cc6bad3 and value = `name`
+UUIDv5 logic; `namespace` = `562918ee-d5da-5579-b6a1-fae50cc6bad3` and value = `contactEmail`
 
 ### Indicator SDOs
 
