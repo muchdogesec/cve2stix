@@ -96,6 +96,11 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
 
 Note, due to CVSS scoring changes, not all CVEs have all versions of CVSS Scoring. e.g. very old CVEs (pre-2020 ish) often only have CVSS v2 scores. This is reflected in the object keys (e.g. `3_1` = CVSS 3.1).
 
+OpenCTI properties only allow for one value (when their might be many scores, e.g. primary and secondary), OpenCTI values should use
+
+1. primary values for each CVSS version, if no primary value
+2. use the highest secondary value for cvss version
+
 To generate the id of the object, a UUIDv5 is generated using the namespace `562918ee-d5da-5579-b6a1-fae50cc6bad3` and the `CVE ID`
 
 e.g `CVE-2019-18939` = `37f8739d-1702-5e39-bc7e-d0710e06487a` = `vulnerability--37f8739d-1702-5e39-bc7e-d0710e06487a`
