@@ -39,6 +39,7 @@ class CVE:
     softwares: List[Software] = field(default_factory=list)
     groupings: List[Grouping] = field(default_factory=list)
     relationships: List[Relationship] = field(default_factory=list)
+    deprecations: List[Software|Relationship] = field(default_factory=list)
     source_map: ClassVar[dict[str, Identity]]
 
     @classmethod
@@ -51,10 +52,11 @@ class CVE:
         if indicator:
             cve.indicator = indicator[0]
             cve.relationships.append(indicator[1])
-        groupings, softwares, rels = cpe_match.parse_cpe_matches(cve.indicator)
+        groupings, softwares, rels, deprecations = cpe_match.parse_cpe_matches(cve.indicator)
         cve.relationships.extend(rels)
         cve.softwares.extend(softwares)
         cve.groupings.extend(groupings)
+        cve.deprecations.extend(deprecations)
         return cve
 
     @property
@@ -64,6 +66,7 @@ class CVE:
             + self.relationships
             + self.softwares
             + self.groupings
+            + self.deprecations
         )
         if self.indicator:
             objects.append(self.indicator)
@@ -105,9 +108,28 @@ class CVE:
         }
         if cve.get("vulnStatus").lower() in ["rejected", "revoked"]:
             vulnerability_dict["revoked"] = True
+        vulnerability_dict.update(cls.get_extra_cvss_properties(vulnerability_dict.get('x_cvss')))
 
         vulnerability = Vulnerability(**vulnerability_dict)
         return vulnerability
+
+    @classmethod
+    def get_extra_cvss_properties(cls, x_cvss):
+        x_cvss = x_cvss or dict()
+        retval = {}
+        for k, v in x_cvss.items():
+            mapping = {
+                'v2_0': 'x_opencti_cvss_v2',
+                'v4_0': 'x_opencti_cvss_v4',
+                'v3_1': 'x_opencti_cvss',
+            }
+            if k not in mapping:
+                continue
+            prefix = mapping[k]
+            for k in ['base_score', 'vector_string', 'base_severity']:
+                if k in v:
+                    retval[f'{prefix}_{k}'] = v[k]
+        return retval
 
     @staticmethod
     def get_vulnerability_description(cve):
@@ -183,6 +205,7 @@ class CVE:
 
 def parse_cve_api_response(cve_content, config: Config) -> List[CVE]:
     parsed_response = []
+    CVE.source_map = fetch_source_map()
     CVE.source_map = fetch_source_map()
     for cve_item in cve_content["vulnerabilities"]:
         cve = CVE.from_dict(cve_item)

@@ -30,7 +30,7 @@ def test_get_matches_for_cve_id():
 
 
 def test_parse_cpe_matches(indicator_with_cpes):
-    groupings, softwares, relationships = cpe_match.parse_cpe_matches(
+    groupings, softwares, relationships, deprecations = cpe_match.parse_cpe_matches(
         indicator_with_cpes
     )
     assert {grouping["name"] for grouping in groupings} == {

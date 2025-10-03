@@ -4,7 +4,7 @@ from cve2stix.utils import fetch_url
 from .config import DEFAULT_CONFIG as config
 import logging
 from stix2.patterns import StringConstant
-from arango_cve_processor.tools.cpe import relate_indicator, parse_objects_for_criteria
+from arango_cve_processor.tools.cpe import relate_indicator, parse_objects_for_criteria, parse_deprecations
 
 
 def unescape_cpe_string(cpe_string):
@@ -30,15 +30,17 @@ def parse_cpe_matches(
     indicator: Indicator,
 ) -> tuple[list[Grouping], list[Software], list[Relationship]]:
     if not indicator:
-        return [], [], []
+        return [], [], [], []
     logging.info("parse cpe matches for %s", indicator.name)
     softwares = {}
     relationships = []
     groupings = []
+    deprecations = []
 
     for match_data in get_matches_for_cve(cve_id=indicator.name):
         objects = parse_objects_for_criteria(match_data)
         softwares.update({obj["id"]: obj for obj in objects[1:]})
         groupings.append(objects[0])
         relationships.extend(relate_indicator(objects[0], indicator))
-    return groupings, list(softwares.values()), relationships
+        deprecations.extend(parse_deprecations(softwares.values(), add_arango_props=False))
+    return groupings, list(softwares.values()), relationships, deprecations

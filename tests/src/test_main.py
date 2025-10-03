@@ -88,5 +88,4 @@ def test_fetch_data(config):
         mock_fetch_url.reset_mock()
         config.filter_mode = FilterMode.PUB_DATE
         main.fetch_data(datetime(2025, 7, 1, tzinfo=timezone.utc), datetime(2025, 8, 1, tzinfo=timezone.utc), config)
-        print(mock_fetch_url.call_args)
         mock_fetch_url.assert_called_once_with('https://services.nvd.nist.gov/rest/json/cves/2.0/?pubStartDate=2025-07-01T00%3A00%3A00Z&pubEndDate=2025-08-01T00%3A00%3A00Z', config, main.parse_cve_api_response)
