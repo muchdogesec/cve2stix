@@ -253,10 +253,6 @@ Note, the UUID of the Indicator is the same as the Vulnerability for easier iden
 
 Note, a CVE can have zero or more match patterns. In cve2stix a Vulnerability SDO only ever has one Indicator SDO linked to it. In this case each match pattern is joined using an `OR` statement in the pattern field.
 
-As we are using custom properties, we define them using an extension defintion;
-
-https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/indicator-vulnerable-cpes.json
-
 ### Indicator -> Vulnerabily Relationship
 
 Now that the CVE is modelled as a STIX Vulnerability and STIX Indicator Objects the relationship between them needs to be defined.
