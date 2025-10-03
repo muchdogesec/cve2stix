@@ -206,6 +206,7 @@ class CVE:
 def parse_cve_api_response(cve_content, config: Config) -> List[CVE]:
     parsed_response = []
     CVE.source_map = fetch_source_map()
+    CVE.source_map = fetch_source_map()
     for cve_item in cve_content["vulnerabilities"]:
         cve = CVE.from_dict(cve_item)
         logger.info(f"CVE-> {cve.name}")

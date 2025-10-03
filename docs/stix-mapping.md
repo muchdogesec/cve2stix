@@ -5,8 +5,10 @@
 These are hardcoded and imported from our [stix4doge repository](https://github.com/muchdogesec/stix4doge). Specifically these objects;
 
 * Marking Definition: https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/marking-definition/cve2stix.json
-* Identity: https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/identity/cve2stix.json
+* Identity: https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/identity/dogesec.json
 * Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/refs/heads/main/extension-definitions/properties/software-cpe-properties.json
+* Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-scoring.json
+* Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-opencti.json
 
 ### Vulnerability SDOs
 
@@ -19,7 +21,7 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
     "type": "vulnerability",
     "spec_version": "2.1",
     "id": "vulnerability--<UUIDv5 LOGIC>",
-    "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
+    "created_by_ref": "<CNA IDENTITY>",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModified>",
     "name": "<vulnerabilities.cve.id>",
@@ -64,7 +66,10 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
     "extensions": {
         "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
             "extension_type": "toplevel-property-extension"
-        }
+        },
+        "extension-definition--ec658473-1319-53b4-879f-488e47805554": {
+            "extension_type": "toplevel-property-extension"
+        },   
     },
     "x_cvss": {
         "v3_1": {
@@ -76,7 +81,16 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "source": "<VALUE>",
             "type": "<VALUE>"
         }
-    }
+    },
+    "x_opencti_cvss_v2_base_score": "<VALUE>",
+    "x_opencti_cvss_v2_base_severity": "<VALUE>",
+    "x_opencti_cvss_v2_vector_string": "<VALUE>",
+    "x_opencti_cvss_base_score": "<VALUE>",
+    "x_opencti_cvss_base_severity": "<VALUE>",
+    "x_opencti_cvss_vector_string": "<VALUE>",
+    "x_opencti_cvss_v4_base_score": "<VALUE>",
+    "x_opencti_cvss_v4_base_severity": "<VALUE>",
+    "x_opencti_cvss_v4_vector_string": "<VALUE>"
 }
 ```
 
@@ -86,17 +100,79 @@ To generate the id of the object, a UUIDv5 is generated using the namespace `562
 
 e.g `CVE-2019-18939` = `37f8739d-1702-5e39-bc7e-d0710e06487a` = `vulnerability--37f8739d-1702-5e39-bc7e-d0710e06487a`
 
-As we are using custom properties, we define them using an extension defintion;
-
-https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-scoring.json
-
-This extension definition is imported and stored in each bundle generated.
-
 #### A note on rejected CVEs
 
 Sometime CVEs are revoked for a variety of reasons. See: https://nvd.nist.gov/vuln/vulnerability-status
 
 When a CVE is revoked, the `vulnStatus` becomes `REJECT` in an update. In which case a `revoked` property is included in the Vulnerability SDO with its value set to `true`.
+
+### Identity SDOs for CNAs
+
+CNAs can be obtained here: https://services.nvd.nist.gov/rest/json/source/2.0
+
+They look like this
+
+```json
+  "sources": [
+    {
+      "name": "MITRE",
+      "contactEmail": "cve@mitre.org",
+      "sourceIdentifiers": [
+        "cve@mitre.org",
+        "8254265b-2729-46b6-b9e3-3dfca2d5bfca"
+      ],
+      "lastModified": "2019-09-09T16:18:45.930",
+      "created": "2019-09-09T16:18:45.930",
+      "v3AcceptanceLevel": {
+        "description": "Contributor",
+        "lastModified": "2025-10-02T00:00:24.460"
+      },
+      "cweAcceptanceLevel": {
+        "description": "Provider",
+        "lastModified": "2025-10-01T00:00:00.297"
+      }
+    }
+```
+
+`sourceIdentifier` is found via the CVE endpoint which allows vulnerabilities to be linked to identities.
+
+```json
+{
+    "type": "identity",
+    "spec_version": "2.1",
+    "id": "identity--<UUIDv5>",
+    "created_by_ref": "identity--<IMPORTED IDENTITY OBJECT>",
+    "created": "<created VALUE FROM NVD>",
+    "modified": "highest <lastModified>",
+    "name": "<name>",
+    "identity_class": "organization",
+    "contact_information": "<contactEmail>",
+    "external_references": [
+        {
+            "source_name": "sourceIdentifier",
+            "external_id": "<sourceIdentifier ITEM 1>"
+        },
+        {
+            "source_name": "sourceIdentifier",
+            "external_id": "<sourceIdentifier ITEM 2>"
+        },
+        {
+            "source_name": "v3AcceptanceLevel",
+            "external_id": "v3AcceptanceLevel description>"
+        },
+        {
+            "source_name": "cweAcceptanceLevel",
+            "external_id": "<cweAcceptanceLevel description>"
+        }
+    ],
+    "object_marking_refs": [
+        "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
+        "<IMPORTED MARKING DEFINTION OBJECT>"
+    ],
+}
+```
+
+UUIDv5 logic; `namespace` = `562918ee-d5da-5579-b6a1-fae50cc6bad3` and value = `contactEmail`
 
 ### Indicator SDOs
 
@@ -174,10 +250,6 @@ Note, the UUID of the Indicator is the same as the Vulnerability for easier iden
 
 Note, a CVE can have zero or more match patterns. In cve2stix a Vulnerability SDO only ever has one Indicator SDO linked to it. In this case each match pattern is joined using an `OR` statement in the pattern field.
 
-As we are using custom properties, we define them using an extension defintion;
-
-https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/indicator-vulnerable-cpes.json
-
 ### Indicator -> Vulnerabily Relationship
 
 Now that the CVE is modelled as a STIX Vulnerability and STIX Indicator Objects the relationship between them needs to be defined.
@@ -192,7 +264,7 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
     "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
-    "relationship_type": "x-cpe-match",
+    "relationship_type": "related-to",
     "source_ref": "vulnerability--<VULNERABILITY STIX OBJECT>",
     "target_ref": "indicator--<INDICATOR STIX OBJECT>",
     "description": "<CVE-ID> affects products identified by the CPEs in the Indicator objects pattern",
