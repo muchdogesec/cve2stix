@@ -7,6 +7,8 @@ These are hardcoded and imported from our [stix4doge repository](https://github.
 * Marking Definition: https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/marking-definition/cve2stix.json
 * Identity: https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/identity/dogesec.json
 * Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/refs/heads/main/extension-definitions/properties/software-cpe-properties.json
+* Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-scoring.json
+* Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-opencti.json
 
 ### Vulnerability SDOs
 
@@ -80,11 +82,18 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
             "type": "<VALUE>"
         }
     },
-    "x_opencti_cvss_vector_string": "<VALUE>",
     "x_opencti_cvss_v2_base_score": "<VALUE>",
+    "x_opencti_cvss_v2_base_severity": "<VALUE>",
     "x_opencti_cvss_v2_vector_string": "<VALUE>",
-    "x_opencti_cvss_base_score": "<VALUE>"
-
+    "x_opencti_cvss_base_score": "<VALUE>",
+    "x_opencti_cvss_base_severity": "<VALUE>",
+    "x_opencti_cvss_vector_string": "<VALUE>",
+    "x_opencti_cvss_v4_base_score": "<VALUE>",
+    "x_opencti_cvss_v4_base_severity": "<VALUE>",
+    "x_opencti_cvss_v4_vector_string": "<VALUE>",
+    "x_opencti_cisa_kev": "<VALUE>",
+    "x_opencti_epss_score": "<VALUE>",
+    "x_opencti_epss_percentile": "<VALUE>"
 }
 ```
 
@@ -93,12 +102,6 @@ Note, due to CVSS scoring changes, not all CVEs have all versions of CVSS Scorin
 To generate the id of the object, a UUIDv5 is generated using the namespace `562918ee-d5da-5579-b6a1-fae50cc6bad3` and the `CVE ID`
 
 e.g `CVE-2019-18939` = `37f8739d-1702-5e39-bc7e-d0710e06487a` = `vulnerability--37f8739d-1702-5e39-bc7e-d0710e06487a`
-
-As we are using custom properties, we define them using an extension defintion;
-
-https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-scoring.json
-
-This extension definition is imported and stored in each bundle generated.
 
 #### A note on rejected CVEs
 
