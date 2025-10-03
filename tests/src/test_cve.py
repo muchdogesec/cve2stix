@@ -1,7 +1,9 @@
+import json
 from unittest.mock import call, patch
 import pytest
 from datetime import datetime, timezone
 from cve2stix import cve as cve_module
+from stix2 import parse as parse_stix
 
 
 @pytest.fixture
@@ -293,7 +295,7 @@ def example_cve_response():
     }
 
 
-def test_from_dict_creates_cve(example_cve):
+def test_from_dict_creates_cve(example_cve, source_identity):
     with patch("cve2stix.cpe_match.parse_cpe_matches") as mock_parse_softwares:
         mock_parse_softwares.return_value = (
             [dict(group=1)],
@@ -303,6 +305,7 @@ def test_from_dict_creates_cve(example_cve):
                 dict(b=2),
             ],
         )
+        cve_module.CVE.source_map = {"cna@vuldb.com": parse_stix(source_identity)}
         cve_obj = cve_module.CVE.from_dict(example_cve)
         assert isinstance(cve_obj, cve_module.CVE)
         assert isinstance(cve_obj.vulnerability, cve_module.Vulnerability)
@@ -316,18 +319,22 @@ def test_from_dict_creates_cve(example_cve):
             assert rel in cve_obj.relationships
 
 
-def test_cve_objects():
-    cve_obj = cve_module.CVE(cve_module.Vulnerability(name="vuln"))
+def test_cve_objects(source_identity):
+    cve_obj = cve_module.CVE(
+        cve_module.Vulnerability(name="vuln"), source=source_identity
+    )
     cve_obj.softwares.extend([dict(a=1), dict(b=2)])
     cve_obj.relationships.extend([dict(c=3), dict(b=2)])
     assert cve_obj.objects == [
         cve_obj.vulnerability,
+        source_identity,
         *cve_obj.relationships,
         *cve_obj.softwares,
     ]
     cve_obj.indicator = dict(e=9)
     assert cve_obj.objects == [
         cve_obj.vulnerability,
+        source_identity,
         *cve_obj.relationships,
         *cve_obj.softwares,
         *cve_obj.groupings,
@@ -335,14 +342,92 @@ def test_cve_objects():
     ]
 
 
-def test_parse_cve_vulnerability_builds_correct_vuln(example_cve):
-    vuln = cve_module.CVE.parse_cve_vulnerability(example_cve["cve"])
-    assert vuln.name == "CVE-2024-0278"
-    assert vuln.created == datetime(2024, 1, 7, 14, 15, 43, 297000)
-    assert vuln.modified == datetime(2024, 11, 21, 8, 46, 12, 893000)
-    assert any(ref["source_name"] == "cwe" for ref in vuln.external_references)
-    assert vuln.extensions is not None
-    assert list(vuln.x_cvss.keys()) == ["v3_1", "v2_0"]
+def test_parse_cve_vulnerability_builds_correct_vuln(example_cve, source_identity):
+    vuln = cve_module.CVE.parse_cve_vulnerability(
+        example_cve["cve"], source_identity["id"]
+    )
+    assert json.loads(vuln.serialize()) == {
+        "type": "vulnerability",
+        "spec_version": "2.1",
+        "id": "vulnerability--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
+        "created_by_ref": "identity--a9546a6d-7e78-5367-847d-8d10e8a77bc9",
+        "created": "2024-01-07T14:15:43.297Z",
+        "modified": "2024-11-21T08:46:12.893Z",
+        "name": "CVE-2024-0278",
+        "description": "A vulnerability, which was classified as critical, has been found in Kashipara Food Management System up to 1.0. This issue affects some unknown processing of the file partylist_edit_submit.php. The manipulation of the argument id leads to sql injection. The attack may be initiated remotely. The exploit has been disclosed to the public and may be used. The identifier VDB-249833 was assigned to this vulnerability.",
+        "external_references": [
+            {
+                "source_name": "cve",
+                "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-0278",
+                "external_id": "CVE-2024-0278",
+            },
+            {
+                "source_name": "cwe",
+                "url": "https://cwe.mitre.org/data/definitions/CWE-89.html",
+                "external_id": "CWE-89",
+            },
+            {
+                "source_name": "cna@vuldb.com",
+                "description": "Exploit,Third Party Advisory",
+                "url": "https://github.com/E1CHO/cve_hub/blob/main/Food%20Management%20System/Food%20Management%20System%20-%20vuln%2010.pdf",
+            },
+            {
+                "source_name": "cna@vuldb.com",
+                "description": "Permissions Required,Third Party Advisory",
+                "url": "https://vuldb.com/?ctiid.249833",
+            },
+            {
+                "source_name": "cna@vuldb.com",
+                "description": "Third Party Advisory",
+                "url": "https://vuldb.com/?id.249833",
+            },
+            {
+                "source_name": "af854a3a-2127-422b-91ae-364da2661108",
+                "description": "Exploit,Third Party Advisory",
+                "url": "https://github.com/E1CHO/cve_hub/blob/main/Food%20Management%20System/Food%20Management%20System%20-%20vuln%2010.pdf",
+            },
+            {
+                "source_name": "af854a3a-2127-422b-91ae-364da2661108",
+                "description": "Permissions Required,Third Party Advisory",
+                "url": "https://vuldb.com/?ctiid.249833",
+            },
+            {
+                "source_name": "af854a3a-2127-422b-91ae-364da2661108",
+                "description": "Third Party Advisory",
+                "url": "https://vuldb.com/?id.249833",
+            },
+            {"source_name": "vulnStatus", "description": "Modified"},
+        ],
+        "object_marking_refs": [
+            "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
+            "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3",
+        ],
+        "extensions": {
+            "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
+                "extension_type": "toplevel-property-extension"
+            }
+        },
+        "x_cvss": {
+            "v3_1": {
+                "type": "Secondary",
+                "source": "cna@vuldb.com",
+                "exploitability_score": 2.8,
+                "impact_score": 3.4,
+                "vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
+                "base_score": 6.3,
+                "base_severity": "MEDIUM",
+            },
+            "v2_0": {
+                "type": "Secondary",
+                "source": "cna@vuldb.com",
+                "exploitability_score": 8.0,
+                "impact_score": 6.4,
+                "vector_string": "AV:N/AC:L/Au:S/C:P/I:P/A:P",
+                "base_score": 6.5,
+                "base_severity": "MEDIUM",
+            },
+        },
+    }
 
 
 def test_parse_other_references_includes_cwe_and_references(example_cve):
@@ -388,6 +473,9 @@ def test_parse_cve_api_response_parses_all():
     ):
         mock_cve.return_value.objects = [3, 4, 5]
         cve_module.parse_cve_api_response(resp, cve_module.config)
+        assert isinstance(
+            cve_module.CVE.source_map, dict
+        ), f"bad source_map: {cve_module.CVE.source_map}"
         mock_cve.assert_has_calls([call(1), call(2)], any_order=True)
         mock_fs_add.assert_has_calls([call(3), call(4), call(5)], any_order=True)
 
@@ -397,7 +485,10 @@ def test_parse_cve_api_response(example_cve_response):
     with patch("stix2.FileSystemStore.add", side_effect=objects.append) as mock_fs_add:
         cve_module.parse_cve_api_response(example_cve_response, cve_module.config)
         mock_fs_add.assert_called()
-    print({obj["id"] for obj in objects})
+
+    assert isinstance(
+        cve_module.CVE.source_map, dict
+    ), f"bad source_map: {cve_module.CVE.source_map}"
     assert {obj["id"] for obj in objects} == {
         "vulnerability--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
         "vulnerability--a6fd09c6-7a26-5ccb-9e4a-bd6b724df85b",
@@ -412,4 +503,38 @@ def test_parse_cve_api_response(example_cve_response):
         "indicator--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
         "software--3114e670-1bc4-5bc1-8458-9f302d1891e2",
         "grouping--9a60b644-bd0f-5bd1-b352-cae9187f6d06",
+        "identity--a9546a6d-7e78-5367-847d-8d10e8a77bc9",
+        "identity--64dfee48-e209-5e25-bad4-dcc80d221a85",
     }
+
+
+@pytest.fixture
+def source_identity():
+    return {
+        "type": "identity",
+        "spec_version": "2.1",
+        "id": "identity--a9546a6d-7e78-5367-847d-8d10e8a77bc9",
+        "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
+        "created": "2022-03-28T18:15:08.113Z",
+        "modified": "2022-03-28T18:15:08.113Z",
+        "name": "VulDB",
+        "identity_class": "organization",
+        "contact_information": "cna@vuldb.com",
+        "external_references": [
+            {"source_name": "sourceIdentifier", "external_id": "cna@vuldb.com"},
+            {
+                "source_name": "sourceIdentifier",
+                "external_id": "1af790b2-7ee1-4545-860a-a788eba489b5",
+            },
+        ],
+        "object_marking_refs": [
+            "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
+            "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3",
+        ],
+    }
+
+
+def test_fetch_source_map(source_identity):
+    source_map = cve_module.fetch_source_map()
+    source1 = json.loads(source_map["cna@vuldb.com"].serialize())
+    assert source1 == source_identity

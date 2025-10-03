@@ -81,7 +81,7 @@ class Config:
     namespace = UUID("562918ee-d5da-5579-b6a1-fae50cc6bad3")
     data_path = REPO_FOLDER
 
-    CVE2STIX_IDENTITY_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/identity/cve2stix.json"
+    CVE2STIX_IDENTITY_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/identity/dogesec.json"
     CVE2STIX_MARKING_DEFINITION_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/marking-definition/cve2stix.json"
     CVE2STIX_IDENTITY_REF = json.loads(load_file_from_url(url=CVE2STIX_IDENTITY_URL))
     CVE2STIX_MARKING_DEFINITION_REF = json.loads(
@@ -96,6 +96,7 @@ class Config:
     REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
 
     CPE_MATCH_FEED_URL = "https://services.nvd.nist.gov/rest/json/cpematch/2.0"
+    SOURCE_IDENTIFIERS_URL = "https://services.nvd.nist.gov/rest/json/source/2.0"
 
     @property
     def fs(self):
