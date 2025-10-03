@@ -90,10 +90,7 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
     "x_opencti_cvss_vector_string": "<VALUE>",
     "x_opencti_cvss_v4_base_score": "<VALUE>",
     "x_opencti_cvss_v4_base_severity": "<VALUE>",
-    "x_opencti_cvss_v4_vector_string": "<VALUE>",
-    "x_opencti_cisa_kev": "<VALUE>",
-    "x_opencti_epss_score": "<VALUE>",
-    "x_opencti_epss_percentile": "<VALUE>"
+    "x_opencti_cvss_v4_vector_string": "<VALUE>"
 }
 ```
 
