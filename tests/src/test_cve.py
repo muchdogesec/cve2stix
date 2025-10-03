@@ -410,6 +410,9 @@ def test_parse_cve_vulnerability_builds_correct_vuln(example_cve, source_identit
         "extensions": {
             "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
                 "extension_type": "toplevel-property-extension"
+            },
+            "extension-definition--ec658473-1319-53b4-879f-488e47805554": {
+                "extension_type": "toplevel-property-extension"
             }
         },
         "x_opencti_cvss_base_score": 6.5,

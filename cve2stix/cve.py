@@ -20,7 +20,7 @@ from stix2 import Identity
 
 from cve2stix.utils import fetch_url
 from .config import DEFAULT_CONFIG as config, Config
-from stix2extensions._extensions import vulnerability_scoring_ExtensionDefinitionSMO
+from stix2extensions._extensions import vulnerability_scoring_ExtensionDefinitionSMO, vulnerability_opencti_ExtensionDefinitionSMO
 
 from cve2stix.indicator import parse_cve_indicator
 from stix2.datastore import DataSourceError
@@ -103,6 +103,9 @@ class CVE:
             "x_cvss": cls.parse_cvss_metrics(cve),
             "extensions": {
                 vulnerability_scoring_ExtensionDefinitionSMO.id: {
+                    "extension_type": "toplevel-property-extension"
+                },
+                vulnerability_opencti_ExtensionDefinitionSMO.id: {
                     "extension_type": "toplevel-property-extension"
                 }
             },
@@ -223,7 +226,6 @@ class CVE:
 
 def parse_cve_api_response(cve_content, config: Config) -> List[CVE]:
     parsed_response = []
-    CVE.source_map = fetch_source_map()
     CVE.source_map = fetch_source_map()
     for cve_item in cve_content["vulnerabilities"]:
         cve = CVE.from_dict(cve_item)
