@@ -5,6 +5,7 @@ Representation of CVE object stored in stix2_bundles/
 import contextlib
 from dataclasses import dataclass, field
 from datetime import datetime
+import itertools
 import logging
 import re
 from typing import ClassVar, List
@@ -26,6 +27,7 @@ from stix2.datastore import DataSourceError
 
 from .loggings import logger
 
+
 def parse_date(date_str: str):
     return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%f")
 
@@ -39,7 +41,7 @@ class CVE:
     softwares: List[Software] = field(default_factory=list)
     groupings: List[Grouping] = field(default_factory=list)
     relationships: List[Relationship] = field(default_factory=list)
-    deprecations: List[Software|Relationship] = field(default_factory=list)
+    deprecations: List[Software | Relationship] = field(default_factory=list)
     source_map: ClassVar[dict[str, Identity]]
 
     @classmethod
@@ -52,7 +54,9 @@ class CVE:
         if indicator:
             cve.indicator = indicator[0]
             cve.relationships.append(indicator[1])
-        groupings, softwares, rels, deprecations = cpe_match.parse_cpe_matches(cve.indicator)
+        groupings, softwares, rels, deprecations = cpe_match.parse_cpe_matches(
+            cve.indicator
+        )
         cve.relationships.extend(rels)
         cve.softwares.extend(softwares)
         cve.groupings.extend(groupings)
@@ -108,7 +112,9 @@ class CVE:
         }
         if cve.get("vulnStatus").lower() in ["rejected", "revoked"]:
             vulnerability_dict["revoked"] = True
-        vulnerability_dict.update(cls.get_extra_cvss_properties(vulnerability_dict.get('x_cvss')))
+        vulnerability_dict.update(
+            cls.get_extra_cvss_properties(vulnerability_dict.get("x_cvss"))
+        )
 
         vulnerability = Vulnerability(**vulnerability_dict)
         return vulnerability
@@ -117,18 +123,19 @@ class CVE:
     def get_extra_cvss_properties(cls, x_cvss):
         x_cvss = x_cvss or dict()
         retval = {}
-        for k, v in x_cvss.items():
+        for k, vv in x_cvss.items():
+            v = vv[0]
             mapping = {
-                'v2_0': 'x_opencti_cvss_v2',
-                'v4_0': 'x_opencti_cvss_v4',
-                'v3_1': 'x_opencti_cvss',
+                "v2_0": "x_opencti_cvss_v2",
+                "v4_0": "x_opencti_cvss_v4",
+                "v3_1": "x_opencti_cvss",
             }
             if k not in mapping:
                 continue
             prefix = mapping[k]
-            for k in ['base_score', 'vector_string', 'base_severity']:
+            for k in ["base_score", "vector_string", "base_severity"]:
                 if k in v:
-                    retval[f'{prefix}_{k}'] = v[k]
+                    retval[f"{prefix}_{k}"] = v[k]
         return retval
 
     @staticmethod
@@ -174,11 +181,13 @@ class CVE:
         pattern = re.compile(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
         try:
             # labels.extend(dict(source_name=f'cvss_metric-{key}', description=metric) for key, metric in cve.get("metrics").items())
-            for metrics in cve.get("metrics", {}).values():
-                cvss_data = metrics[0]
+            for metrics in itertools.chain(*cve.get("metrics", {}).values()):
+                cvss_data = metrics
                 cvss_data.update(cvss_data.pop("cvssData", {}))
                 version = "v" + cvss_data["version"].lower().replace(".", "_")
-                metric = retval[version] = {}
+                version_list = retval.setdefault(version, [])
+                metric = {}
+                version_list.append(metric)
                 metric["type"] = cvss_data["type"]
                 metric["source"] = cvss_data["source"]
                 for cvss_key in [
@@ -193,6 +202,15 @@ class CVE:
                         metric[cvss_key] = cvss_value
         except Exception as e:
             logging.error(e)
+
+        for k, v in retval.items():
+            retval[k] = sorted(
+                v,
+                key=lambda x: (
+                    (x["type"].lower() == "primary" and 1) or 10,
+                    x["base_score"],
+                ),
+            )
         return retval
 
     @staticmethod
@@ -218,6 +236,7 @@ def parse_cve_api_response(cve_content, config: Config) -> List[CVE]:
 
 def fetch_source_map():
     sources: dict[str, Identity] = {}
+
     def parse(response, *args):
         for source in response.get("sources", []):
             parsed_source = Identity(
