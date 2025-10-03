@@ -413,7 +413,7 @@ def test_parse_cve_vulnerability_builds_correct_vuln(example_cve, source_identit
             },
             "extension-definition--ec658473-1319-53b4-879f-488e47805554": {
                 "extension_type": "toplevel-property-extension"
-            }
+            },
         },
         "x_opencti_cvss_base_score": 6.5,
         "x_opencti_cvss_base_severity": "MEDIUM",
@@ -558,7 +558,7 @@ def source_identity():
         "id": "identity--a9546a6d-7e78-5367-847d-8d10e8a77bc9",
         "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
         "created": "2022-03-28T18:15:08.113Z",
-        "modified": "2022-03-28T18:15:08.113Z",
+        "modified": "2025-10-03T00:00:21.467Z",
         "name": "VulDB",
         "identity_class": "organization",
         "contact_information": "cna@vuldb.com",
@@ -568,6 +568,8 @@ def source_identity():
                 "source_name": "sourceIdentifier",
                 "external_id": "1af790b2-7ee1-4545-860a-a788eba489b5",
             },
+            {"source_name": "v3AcceptanceLevel", "external_id": "Provider"},
+            {"source_name": "cweAcceptanceLevel", "external_id": "Provider"},
         ],
         "object_marking_refs": [
             "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",

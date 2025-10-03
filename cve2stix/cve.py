@@ -29,7 +29,10 @@ from .loggings import logger
 
 
 def parse_date(date_str: str):
-    return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%f")
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%f")
+    except:
+        return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
 
 
 @dataclass
@@ -241,6 +244,20 @@ def fetch_source_map():
 
     def parse(response, *args):
         for source in response.get("sources", []):
+            lastModified = parse_date(source["lastModified"])
+            refs = []
+                    
+            for identifier in source["sourceIdentifiers"]:
+                refs.append(dict(source_name="sourceIdentifier", external_id=identifier))
+            
+            for k in ['v3AcceptanceLevel', 'cweAcceptanceLevel']:
+                if k not in source:
+                    continue
+                level_data = source[k]
+                refs.append(dict(source_name=k, external_id=level_data['description']))
+                lastModified = max(lastModified, parse_date(level_data["lastModified"]))
+                
+                
             parsed_source = Identity(
                 type="identity",
                 spec_version="2.1",
@@ -249,7 +266,7 @@ def fetch_source_map():
                 ),
                 created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
                 created=parse_date(source["created"]),
-                modified=parse_date(source["lastModified"]),
+                modified=lastModified,
                 name=source["name"],
                 identity_class="organization",
                 contact_information=source["contactEmail"],
@@ -257,10 +274,7 @@ def fetch_source_map():
                     "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
                     "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3",
                 ],
-                external_references=[
-                    dict(source_name="sourceIdentifier", external_id=identifier)
-                    for identifier in source["sourceIdentifiers"]
-                ],
+                external_references=refs,
             )
             for identifier in source["sourceIdentifiers"]:
                 sources[identifier] = parsed_source

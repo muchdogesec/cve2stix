@@ -33,7 +33,7 @@ jobs:
         run: |
           pip install -r requirements.txt pytest pytest-cov
           export PYTHONPATH=.
-          pytest --cov --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy tests/
+          pytest --cov --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy tests/ -v
 
       - name: Upload coverage reports to Codecov
         id: upload_unit_test_coverage
