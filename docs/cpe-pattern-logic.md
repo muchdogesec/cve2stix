@@ -1,4 +1,8 @@
-#### Simple Relationships
+## Indicator `patterns`
+
+This document describes how `patterns` in Indicator objects are created.
+
+### Simple Relationships
 
 [CVE-2022-29098 offers a good example of simple relationships](https://nvd.nist.gov/vuln/detail/CVE-2022-29098).
 
@@ -62,7 +66,7 @@ As such, in this example the `pattern` in the Indicator would be as follow;
 
 The CPE statements are joined by `OR` as this is the top level `operator` in the API response (of course, in many cases this can be an `AND`).
 
-#### Running On/With Relationships
+### Running On/With Relationships
 
 [Let me demonstrate how more complex Relationships are modelled using the example CVE-2022-27948](https://nvd.nist.gov/vuln/detail/CVE-2022-27948).
 
@@ -133,7 +137,7 @@ So in this example I get pattern that will look like;
 
 Note how the `AND` joins the two square brackets, that's because the top level `operator` in the CVE response shown above is an `AND`. The CPE statements are joined by `OR` as this is the top level `operator` in the API response (of course, in many cases this can be an `AND`).
 
-#### Advanced Relationships
+### Advanced Relationships
 
 [I will use CVE-2019-18939 to demonstrate another more complex `configuration`](https://nvd.nist.gov/vuln/detail/CVE-2019-18939).
 
@@ -276,7 +280,7 @@ Which form a single pattern inside the Indicator SDO as follows (each above patt
     "pattern": "( [ (software.cpe = 'cpe:2.3:a:hm-print_project:hm-print:1.2a:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:h:eq-3:homematic_ccu2:-:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:o:eq-3:homematic_ccu2_firmware:2.47.20:*:*:*:*:*:*:*') ] ) OR ( [ (software.cpe = 'cpe:2.3:a:hm-print_project:hm-print:1.2:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:h:eq-3:homematic_ccu3:-:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:o:eq-3:homematic_ccu3_firmware:3.47.18:*:*:*:*:*:*:*') ] ) OR ( [ (software.cpe = 'cpe:2.3:a:hm-print_project:hm-print:1.2a:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:h:eq-3:homematic_ccu3:-:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:o:eq-3:homematic_ccu3_firmware:3.47.18:*:*:*:*:*:*:*') ] ) OR ( [ (software.cpe = 'cpe:2.3:a:hm-print_project:hm-print:1.2:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:h:eq-3:homematic_ccu2:-:*:*:*:*:*:*:*') AND (software.cpe = 'cpe:2.3:o:eq-3:homematic_ccu2_firmware:2.47.20:*:*:*:*:*:*:*') ] )",
 ```
 
-#### (More) Advanced Relationships
+### (More) Advanced Relationships
 
 Advance relationships are made slightly more complicated. For this I'll use CVE-2020-3543.
 
@@ -557,7 +561,7 @@ This will create a final pattern with all 8 patterns, joined with an `AND` state
     "pattern": "( [ (software.cpe = 'cpe:2.3:o:cisco:8000p_ip_camera_firmware:1.0.9-4:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:cisco:8000p_ip_camera:-:*:*:*:*:*:*:*') ] ) AND ( [ (software.cpe = 'cpe:2.3:o:cisco:8020_ip_camera_firmware:1.0.9-4:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:cisco:8020_ip_camera:-:*:*:*:*:*:*:*') ] ) AND ( [ (software.cpe = 'cpe:2.3:o:cisco:8030_ip_camera_firmware:1.0.9-4:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:cisco:8030_ip_camera:-:*:*:*:*:*:*:*') ] ) AND ( [ (software.cpe = 'cpe:2.3:o:cisco:8070_ip_camera_firmware:1.0.9-4:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:cisco:8070_ip_camera:-:*:*:*:*:*:*:*') ] ) AND ( [ (software.cpe = 'cpe:2.3:o:cisco:8400_ip_camera_firmware:1.0.9-4:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:cisco:8400_ip_camera:-:*:*:*:*:*:*:*') ] ) AND ( [ (software.cpe = 'cpe:2.3:o:cisco:8620_ip_camera_firmware:1.0.9-4:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:cisco:8620_ip_camera:-:*:*:*:*:*:*:*') ] ) AND ( [ (software.cpe = 'cpe:2.3:o:cisco:8630_ip_camera_firmware:1.0.9-4:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:cisco:8630_ip_camera:-:*:*:*:*:*:*:*') ] ) AND ( [ (software.cpe = 'cpe:2.3:o:cisco:8930_speed_dome_ip_camera_firmware:1.0.9-4:*:*:*:*:*:*:*') OR (software.cpe = 'cpe:2.3:h:cisco:8930_speed_dome_ip_camera:-:*:*:*:*:*:*:*') ] )",
 ```
 
-#### A note on patterns
+### A note on patterns
 
 **Recursion errors**
 

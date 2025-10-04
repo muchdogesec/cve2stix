@@ -4,6 +4,8 @@
 
 ## Before you begin
 
+![](docs/vulmatch.png)
+
 We host a full web API that includes all objects created by cve2stix, [Vulmatch](https://www.vulmatch.com/).
 
 ## Overview
@@ -14,15 +16,15 @@ A command line tool that turns NVD CVE records into STIX 2.1 Objects.
 
 > The mission of the CVE® Program is to identify, define, and catalog publicly disclosed cybersecurity vulnerabilities. There is one CVE Record for each vulnerability in the catalog. The vulnerabilities are discovered then assigned and published by organizations from around the world that have partnered with the CVE Program. Partners publish CVE Records to communicate consistent descriptions of vulnerabilities. Information technology and cybersecurity professionals use CVE Records to ensure they are discussing the same issue, and to coordinate their efforts to prioritize and address the vulnerabilities.
 
-Source: https://www.cve.org/About/Overview
+[Source](https://www.cve.org/About/Overview)
 
 CVE records are currently published to the NVD API, but are in a custom schema.
 
 We had a requirement to have an up-to-date copy of NVD CVEs in STIX 2.1 format for easy dissemination to downstream system.
 
-The code in this repository turns CVEs into STIX 2.1 objects, and keeps them updated to match the official CVE API;
+The code in this repository turns CVEs into STIX 2.1 objects, and keeps them updated to match the official NVD APIs;
 
-1. Downloads the current CVEs (that match a users filters) from an [NVD API mirror](https://github.com/espressif/esp-nvd-mirror/)
+1. Downloads the current CVEs and CPEs
 2. Converts them to STIX 2.1 Objects
 3. Stores the STIX 2.1 Objects in the file store
 4. Creates STIX Bundles of generated objects for each update run
