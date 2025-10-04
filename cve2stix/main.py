@@ -33,16 +33,15 @@ def fetch_data(start, end, config: Config):
     return fetch_url(urlunsplit(uri), config, parse_cve_api_response)
 
 
-def map_marking_definition(config, object_list):
-    logger.info("Marking Definition creation start")
-    marking_definition = parse(config.CVE2STIX_MARKING_DEFINITION_REF)
-    object_list.append(marking_definition)
-    config.fs.add(marking_definition)
-    logger.info("Marking Definition creation end")
+def map_default_objects(config: Config, object_list: list):
+    logger.info("Add Marking definition objects to bundle: START")
+    object_list.extend(config.default_objects)
+    config.fs.add(config.default_objects)
+    logger.info("Add Marking definition objects to bundle: DONE")
     return object_list
 
 
-def map_extensions(config, object_list):
+def map_extensions(config: Config, object_list: list):
     logger.info("Adding extensions")
     extensions = [
         stix_extensions.indicator_vulnerable_cpes_ExtensionDefinitionSMO,
@@ -52,15 +51,6 @@ def map_extensions(config, object_list):
     ]
     object_list.extend(extensions)
     config.fs.add(extensions)
-    return object_list
-
-
-def map_identity(config, object_list):
-    logger.info("Marking Identity creation start")
-    identity = parse(config.CVE2STIX_IDENTITY_REF)
-    object_list.append(identity)
-    config.fs.add(identity)
-    logger.info("Marking Identity creation end")
     return object_list
 
 

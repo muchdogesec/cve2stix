@@ -62,8 +62,7 @@ def test_cve_syncing_task_calls_fetch_data(mock_fetch_data):
 
 
 @patch("cve2stix.main.map_extensions")
-@patch("cve2stix.main.map_identity")
-@patch("cve2stix.main.map_marking_definition")
+@patch("cve2stix.main.map_default_objects")
 @patch("cve2stix.celery.store_cve_in_bundle")
 @pytest.mark.parametrize(
     "returns_vulnerabilities",
@@ -71,13 +70,11 @@ def test_cve_syncing_task_calls_fetch_data(mock_fetch_data):
 )
 def test_preparing_results_pipeline(
     mock_store_bundle,
-    mock_marking,
-    mock_identity,
+    mock_defaults,
     mock_extensions,
     returns_vulnerabilities
 ):
-    mock_marking.return_value = ["m"]
-    mock_identity.return_value = ["i"]
+    mock_defaults.return_value = ["m"]
     mock_extensions.return_value = ["e"]
 
     dummy_conf = {"file_system": "/tmp", "stix2_bundles_folder": "/tmp"}
@@ -92,3 +89,6 @@ def test_preparing_results_pipeline(
         else:
             mock_query.assert_called_once()
             mock_store_bundle.assert_not_called()
+
+    mock_defaults.assert_called_once()
+    mock_extensions.assert_called_once()
