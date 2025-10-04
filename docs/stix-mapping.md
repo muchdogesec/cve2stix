@@ -435,6 +435,8 @@ Using the `matchCriteriaId` a `grouping` object can be created as follows:
 
 To generate the id of SRO, a UUIDv5 is generated using the namespace `152ecfe1-5015-522b-97e4-86b60c57036d` and the `matchstring` values.
 
+Note uses ACVEP marking-def and namespace, as this object is managed by this ACVEP later in the Vulmatch pipeline.
+
 Note, sometimes there are no `matches` returned by the CPEMatch endpoint. In these examples, no software objects are created (meaning grouping object would have empty `object_refs` and thus fail to generate as this is required field). As such, in this instance, grouping objects are created with a dummy software object `software--11111111-1111-4111-8111-111111111111` that does not exist. When `matches` are discovered later, this reference is removed and correct software (CPE) references are added (using arango_cve_processor)
 
 Some software objects can become deprecated (shown via match criteria API
@@ -499,6 +501,8 @@ When this happens a relationship between old (`cpeName`) and new (`deprecatedBy`
 UUIDv5 logic; `namespace` = `152ecfe1-5015-522b-97e4-86b60c57036d` and value = `source_ref+target_ref`
 
 The software object will also be marked `x_revoked` = `true` when this happens
+
+Note uses ACVEP marking-def and namespace, as this object is managed by this ACVEP later in the Vulmatch pipeline.
 
 ### Indictor -> Grouping
 
