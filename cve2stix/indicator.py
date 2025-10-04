@@ -21,7 +21,7 @@ def parse_cve_indicator(
         "id": "indicator--{}".format(
             str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))
         ),
-        "created_by_ref": config.CVE2STIX_IDENTITY_REF.get("id"),
+        "created_by_ref": config.CVE2STIX_IDENTITY_OBJECT.get("id"),
         "created": vulnerability.created,
         "modified": vulnerability.modified,
         "indicator_types": ["compromised"],
@@ -30,8 +30,7 @@ def parse_cve_indicator(
         "pattern_type": "stix",
         "pattern": pattern_so_far,
         "valid_from": vulnerability.created,
-        "object_marking_refs": [config.TLP_CLEAR_MARKING_DEFINITION_REF]
-        + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
+        "object_marking_refs": config.marking_refs,
         "extensions": {
             indicator_vulnerable_cpes_ExtensionDefinitionSMO.id: {
                 "extension_type": "toplevel-property-extension"
@@ -52,14 +51,13 @@ def parse_cve_indicator(
             str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))
         ),
         created=vulnerability["created"],
-        created_by_ref=config.CVE2STIX_IDENTITY_REF.get("id"),
+        created_by_ref=config.CVE2STIX_IDENTITY_OBJECT['id'],
         modified=vulnerability["modified"],
         description=f"{indicator.name} affects products identified by the CPEs in the Indicator objects pattern",
         relationship_type="related-to",
         target_ref=indicator,
         source_ref=vulnerability,
-        object_marking_refs=[config.TLP_CLEAR_MARKING_DEFINITION_REF]
-        + [config.CVE2STIX_MARKING_DEFINITION_REF.get("id")],
+        object_marking_refs=config.marking_refs,
         external_references=[
             {
                 "source_name": "cve",

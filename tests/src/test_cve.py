@@ -558,7 +558,7 @@ def source_identity():
         "id": "identity--a9546a6d-7e78-5367-847d-8d10e8a77bc9",
         "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
         "created": "2022-03-28T18:15:08.113Z",
-        "modified": "2025-10-03T00:00:21.467Z",
+        "modified": "2025-10-04T00:00:22.570Z",
         "name": "VulDB",
         "identity_class": "organization",
         "contact_information": "cna@vuldb.com",
@@ -568,7 +568,9 @@ def source_identity():
                 "source_name": "sourceIdentifier",
                 "external_id": "1af790b2-7ee1-4545-860a-a788eba489b5",
             },
+            {"source_name": "v2AcceptanceLevel", "external_id": "Reference"},
             {"source_name": "v3AcceptanceLevel", "external_id": "Provider"},
+            {"source_name": "v4AcceptanceLevel", "external_id": "Reference"},
             {"source_name": "cweAcceptanceLevel", "external_id": "Provider"},
         ],
         "object_marking_refs": [
@@ -578,7 +580,36 @@ def source_identity():
     }
 
 
-def test_fetch_source_map(source_identity):
+def test_parse_cna(source_identity):
+    cna_data = {
+        "name": "VulDB",
+        "contactEmail": "cna@vuldb.com",
+        "sourceIdentifiers": ["cna@vuldb.com", "1af790b2-7ee1-4545-860a-a788eba489b5"],
+        "lastModified": "2022-03-28T18:15:08.113",
+        "created": "2022-03-28T18:15:08.113",
+        "v2AcceptanceLevel": {
+            "description": "Reference",
+            "lastModified": "2024-02-17T00:00:14.160",
+        },
+        "v3AcceptanceLevel": {
+            "description": "Provider",
+            "lastModified": "2025-10-04T00:00:22.570",
+        },
+        "v4AcceptanceLevel": {
+            "description": "Reference",
+            "lastModified": "2024-08-10T00:01:24.067",
+        },
+        "cweAcceptanceLevel": {
+            "description": "Provider",
+            "lastModified": "2025-10-04T00:00:00.080",
+        },
+    }
+    assert json.loads(cve_module.parse_cna(cna_data).serialize()) == source_identity
+
+
+
+
+def test_fetch_source_map_online(source_identity):
     source_map = cve_module.fetch_source_map()
-    source1 = json.loads(source_map["cna@vuldb.com"].serialize())
-    assert source1 == source_identity
+    source1 = source_map["cna@vuldb.com"]
+    assert source1["id"] == source_identity["id"]

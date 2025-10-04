@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from stix2 import FileSystemStore
 from uuid import UUID
 from enum import StrEnum
+from arango_cve_processor.config import MARKING_DEF_URL as ACVEP_MARKING_DEF_URL
 
 load_dotenv()
 
@@ -83,9 +84,12 @@ class Config:
 
     CVE2STIX_IDENTITY_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/identity/dogesec.json"
     CVE2STIX_MARKING_DEFINITION_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/marking-definition/cve2stix.json"
-    CVE2STIX_IDENTITY_REF = json.loads(load_file_from_url(url=CVE2STIX_IDENTITY_URL))
-    CVE2STIX_MARKING_DEFINITION_REF = json.loads(
+    CVE2STIX_IDENTITY_OBJECT = json.loads(load_file_from_url(url=CVE2STIX_IDENTITY_URL))
+    CVE2STIX_MARKING_DEFINITION_OBJECT = json.loads(
         load_file_from_url(url=CVE2STIX_MARKING_DEFINITION_URL)
+    )
+    ACVEP_MARKING_DEFINITION_OBJECT = json.loads(
+        load_file_from_url(url=ACVEP_MARKING_DEF_URL)
     )
 
     TLP_CLEAR_MARKING_DEFINITION_REF = (
@@ -101,6 +105,21 @@ class Config:
     @property
     def fs(self):
         return FileSystemStore(self.file_system)
+
+    @property
+    def marking_refs(self):
+        return [
+            self.TLP_CLEAR_MARKING_DEFINITION_REF,
+            self.CVE2STIX_MARKING_DEFINITION_OBJECT["id"],
+        ]
+
+    @property
+    def default_objects(self):
+        return [
+            self.CVE2STIX_IDENTITY_OBJECT,
+            self.CVE2STIX_MARKING_DEFINITION_OBJECT,
+            self.ACVEP_MARKING_DEFINITION_OBJECT,
+        ]
 
 
 DEFAULT_CONFIG = Config()

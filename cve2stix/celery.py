@@ -35,12 +35,11 @@ def cve_syncing_task(start, end, config):
 
 @app.task()
 def preparing_results(task_results, config, filename=None):
-    from .main import map_marking_definition, map_identity, map_extensions
+    from .main import map_default_objects, map_extensions
 
     config = Config(**config)
     results = []
-    results = map_marking_definition(config, results)
-    results = map_identity(config, results)
+    results = map_default_objects(config, results)
     results = map_extensions(config, results)
 
     vulnerabilities = config.fs.query([Filter("type", "=", "vulnerability")])

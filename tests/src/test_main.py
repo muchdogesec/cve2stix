@@ -56,23 +56,19 @@ def test_parse_date_variants():
     assert d3.year == 2025 and d3.month == 7
 
 
-def test_map_identity_adds_identity_to_list_and_fs(config):
+def test_map_default_objects(config):
     obj_list = []
     with patch("stix2.FileSystemStore.add") as mock_fs_add:
-        out = main.map_identity(config, obj_list)
-        assert any(o for o in out if getattr(o, "type", None) == "identity")
-        mock_fs_add.assert_called()
+        out = main.map_default_objects(config, obj_list)
+        assert {o["id"] for o in out} == {
+            "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3",
+            "marking-definition--152ecfe1-5015-522b-97e4-86b60c57036d",
+            "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
+        }
+        mock_fs_add.assert_called_once_with(out)
 
 
-def test_map_marking_definition_adds_marking_to_list_and_fs(config):
-    obj_list = []
-    with patch("stix2.FileSystemStore.add") as mock_fs_add:
-        out = main.map_marking_definition(config, obj_list)
-        assert any(o for o in out if getattr(o, "type", None) == "marking-definition")
-        mock_fs_add.assert_called()
-
-
-def test_map_extensions_adds_extensions_and_fs(config):
+def test_map_extensions(config):
     with patch("stix2.FileSystemStore.add") as mock_fs_add:
         obj_list = [1, 2, 3]
         out = main.map_extensions(config, obj_list)
