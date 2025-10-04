@@ -12,7 +12,6 @@ These are hardcoded and imported from our [stix4doge repository](https://github.
 * Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-opencti.json
 * Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/indicator-vulnerable-cpes.json
 
-
 ### Vulnerability SDOs
 
 STIX 2.1 contains a Vulnerability SDO, [here is the specification for it](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_q5ytzmajn6re). In short, it is designed for modelling vulnerabilities, so I will use it for just that.
@@ -24,7 +23,7 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
     "type": "vulnerability",
     "spec_version": "2.1",
     "id": "vulnerability--<UUIDv5 LOGIC>",
-    "created_by_ref": "<CNA IDENTITY>",
+    "created_by_ref": "<CNA IDENTITY OBJECT>",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModified>",
     "name": "<vulnerabilities.cve.id>",
@@ -64,7 +63,7 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
     ],
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
-        "<IMPORTED MARKING DEFINTION OBJECT>"
+        "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3"
     ],
     "extensions": {
         "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a": {
@@ -98,6 +97,11 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
 ```
 
 Note, due to CVSS scoring changes, not all CVEs have all versions of CVSS Scoring. e.g. very old CVEs (pre-2020 ish) often only have CVSS v2 scores. This is reflected in the object keys (e.g. `3_1` = CVSS 3.1).
+
+OpenCTI properties only allow for one value (when their might be many scores, e.g. primary and secondary), OpenCTI values should use
+
+1. primary values for each CVSS version, if no primary value
+2. use the highest secondary value for cvss version
 
 To generate the id of the object, a UUIDv5 is generated using the namespace `562918ee-d5da-5579-b6a1-fae50cc6bad3` and the `CVE ID`
 
@@ -144,7 +148,7 @@ They look like this
     "type": "identity",
     "spec_version": "2.1",
     "id": "identity--<UUIDv5>",
-    "created_by_ref": "identity--<IMPORTED IDENTITY OBJECT>",
+    "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
     "created": "<created VALUE FROM NVD>",
     "modified": "highest <lastModified>",
     "name": "<name>",
@@ -170,7 +174,7 @@ They look like this
     ],
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
-        "<IMPORTED MARKING DEFINTION OBJECT>"
+        "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3"
     ],
 }
 ```
@@ -200,7 +204,7 @@ Here is the structure of the Indicator SDO and how cve2stix populates it;
     "type": "indicator",
     "spec_version": "2.1",
     "id": "indicator--<SAME UUID AS VULNERABILITY SDO>",
-    "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
+    "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
     "indicator_types": [
@@ -225,7 +229,7 @@ Here is the structure of the Indicator SDO and how cve2stix populates it;
     ],
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
-        "<IMPORTED MARKING DEFINTION OBJECT>"
+        "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3"
     ],
     "extensions": {
         "extension-definition--ad995824-2901-5f6e-890b-561130a239d4": {
@@ -264,7 +268,7 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
     "type": "relationship",
     "spec_version": "2.1",
     "id": "relationship--<VULNERABILITY SDO ID>",
-    "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
+    "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
     "created": "<vulnerabilities.cve.published>",
     "modified": "<vulnerabilities.cve.lastModifiedDate>",
     "relationship_type": "related-to",
@@ -280,12 +284,14 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
     ],
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
-        "<IMPORTED MARKING DEFINTION OBJECT>"
+        "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3"
     ]
 }
 ```
 
-## Indicator -> Grouping
+## Grouping and software objects
+
+**IMPORTANT: THIS LOGIC IS IMPORTED FROM ACVEP**
 
 Inside the Indicator is `x_cpes` property, e.g. 
 
@@ -357,7 +363,7 @@ Using the `cpeNameId`s in the CVE a software object can be created as follows;
     ],
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
-        "<IMPORTED MARKING DEFINTION OBJECT>"
+        "marking-definition--152ecfe1-5015-522b-97e4-86b60c57036d"
     ],
     "extensions": {
         "extension-definition--82cad0bb-0906-5885-95cc-cafe5ee0a500": {
@@ -388,7 +394,7 @@ Using the `matchCriteriaId` a `grouping` object can be created as follows:
     "type": "grouping",
     "spec_version": "2.1",
     "id": "grouping--<UUID V5>",
-    "created_by_ref": "identity--152ecfe1-5015-522b-97e4-86b60c57036d",
+    "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
     "created": "<matchstring.created>",
     "modified": "<matchstring.lastModified>",
     "name": "<matchstring>",
@@ -432,9 +438,78 @@ Using the `matchCriteriaId` a `grouping` object can be created as follows:
 
 To generate the id of SRO, a UUIDv5 is generated using the namespace `152ecfe1-5015-522b-97e4-86b60c57036d` and the `matchstring` values.
 
+Note uses ACVEP marking-def and namespace, as this object is managed by this ACVEP later in the Vulmatch pipeline.
+
 Note, sometimes there are no `matches` returned by the CPEMatch endpoint. In these examples, no software objects are created (meaning grouping object would have empty `object_refs` and thus fail to generate as this is required field). As such, in this instance, grouping objects are created with a dummy software object `software--11111111-1111-4111-8111-111111111111` that does not exist. When `matches` are discovered later, this reference is removed and correct software (CPE) references are added (using arango_cve_processor)
 
+Some software objects can become deprecated (shown via match criteria API
+
+```json
+            "cpe": {
+                "deprecated": true,
+                "cpeName": "cpe:2.3:o:linux:linux_kernel:2.6.2:*:*:*:*:*:*:*",
+                "cpeNameId": "DF3171C4-00E8-4B0F-97EB-2F3EC3394A87",
+                "lastModified": "2021-06-01T14:14:47.707",
+                "created": "2007-08-23T21:16:59.567",
+                "titles": [
+                    {
+                        "title": "Linux Kernel 2.6.2",
+                        "lang": "en"
+                    }
+                ],
+                "refs": [
+                    {
+                        "ref": "https://github.com/torvalds/linux",
+                        "type": "Version"
+                    }
+                ],
+                "deprecatedBy": [
+                    {
+                        "cpeName": "cpe:2.3:o:linux:linux_kernel:2.6.2:-:*:*:*:*:*:*",
+                        "cpeNameId": "1B4C49FC-8606-45D7-94D1-19C5626D69C7"
+                    }
+                ],
+                "deprecates": [
+                    {
+                        "cpeName": "cpe:2.3:o:linux:kernel:2.6.2:*:*:*:*:*:*:*",
+                        "cpeNameId": "B548E49E-BC95-4804-A2C2-D7ACC7F72095"
+                    }
+                ]
+            }
+        }
+    ]
+```
+
+When this happens a relationship between old (`cpeName`) and new (`deprecatedBy`) is created as follows
+
+```json
+{
+    "type": "relationship",
+    "spec_version": "2.1",
+    "id": "relationship--UUID",
+    "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
+    "created": "<software x_created>",
+    "modified": "<software x_modified>",
+    "relationship_type": "related-to",
+    "source_ref": "software--<OLD>",
+    "target_ref": "software--<NEW>",
+    "description": "<CPE OLD> is deprecated by <CPE NEW>",
+    "object_marking_refs": [
+        "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
+        "marking-definition--152ecfe1-5015-522b-97e4-86b60c57036d"
+    ]
+}
+```
+
+UUIDv5 logic; `namespace` = `152ecfe1-5015-522b-97e4-86b60c57036d` and value = `source_ref+target_ref`
+
+The software object will also be marked `x_revoked` = `true` when this happens
+
+Note uses ACVEP marking-def and namespace, as this object is managed by this ACVEP later in the Vulmatch pipeline.
+
 ### Indictor -> Grouping
+
+**IMPORTANT: THIS LOGIC IS IMPORTED FROM ACVEP**
 
 Note, a relationship object is not needed to connect Grouping to Softwares, as this is covered in object_refs
 
@@ -445,7 +520,7 @@ A relationship between the Indicator and corresponding Grouping object is made a
     "type": "relationship",
     "spec_version": "2.1",
     "id": "relationship--<UUID V5 LOGIC>",
-    "created_by_ref": "<IMPORTED IDENTITY OBJECT>",
+    "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
     "created": "<grouping created>",
     "modified": "<grouping modified>",
     "relationship_type": "<x-cpes-vulnerable> OR <x-cpes-not-vulnerable>",
@@ -454,7 +529,7 @@ A relationship between the Indicator and corresponding Grouping object is made a
     "description": "<matchCriteriaId> <is vulnerable to> <is not vulnerable> to <Indicator name>",
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
-        "<MARKING DEFINITION IMPORTED>"
+        "marking-definition--152ecfe1-5015-522b-97e4-86b60c57036d"
     ],
     "external_references": [
         {
@@ -476,7 +551,7 @@ A relationship between the Indicator and corresponding Grouping object is made a
 
 `relationship_type`/`description` is determined by the Indicator `x_cpes.not_vulnerable` or `x_cpes.vulnerable` logic
 
-To generate the id of SRO, a UUIDv5 is generated using the namespace `562918ee-d5da-5579-b6a1-fae50cc6bad3` and the `relationship_type+source_ref+target_ref` values.
+To generate the id of SRO, a UUIDv5 is generated using the namespace `152ecfe1-5015-522b-97e4-86b60c57036d` and the `relationship_type+source_ref+target_ref` values.
 
 
 ### Bundle
