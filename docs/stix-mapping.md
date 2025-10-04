@@ -10,6 +10,7 @@ These are hardcoded and imported from our [stix4doge repository](https://github.
 * Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/refs/heads/main/extension-definitions/properties/software-cpe-properties.json
 * Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-scoring.json
 * Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/vulnerability-opencti.json
+* Extension Definition: https://raw.githubusercontent.com/muchdogesec/stix2extensions/main/extension-definitions/properties/indicator-vulnerable-cpes.json
 
 ### Vulnerability SDOs
 
@@ -288,7 +289,9 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
 }
 ```
 
-## Indicator -> Grouping
+## Grouping and software objects
+
+**IMPORTANT: THIS LOGIC IS IMPORTED FROM ACVEP**
 
 Inside the Indicator is `x_cpes` property, e.g. 
 
