@@ -288,7 +288,9 @@ cve2stix uses [STIX Relationship SROs](https://docs.oasis-open.org/cti/stix/v2.1
 }
 ```
 
-## Indicator -> Grouping
+## Grouping and software objects
+
+**IMPORTANT: THIS LOGIC IS IMPORTED FROM ACVEP**
 
 Inside the Indicator is `x_cpes` property, e.g. 
 
