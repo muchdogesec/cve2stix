@@ -509,6 +509,8 @@ Note uses ACVEP marking-def and namespace, as this object is managed by this ACV
 
 ### Indictor -> Grouping
 
+**IMPORTANT: THIS LOGIC IS IMPORTED FROM ACVEP**
+
 Note, a relationship object is not needed to connect Grouping to Softwares, as this is covered in object_refs
 
 A relationship between the Indicator and corresponding Grouping object is made and represented as follows;
@@ -527,7 +529,7 @@ A relationship between the Indicator and corresponding Grouping object is made a
     "description": "<matchCriteriaId> <is vulnerable to> <is not vulnerable> to <Indicator name>",
     "object_marking_refs": [
         "marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487",
-        "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3"
+        "marking-definition--152ecfe1-5015-522b-97e4-86b60c57036d"
     ],
     "external_references": [
         {
@@ -549,7 +551,7 @@ A relationship between the Indicator and corresponding Grouping object is made a
 
 `relationship_type`/`description` is determined by the Indicator `x_cpes.not_vulnerable` or `x_cpes.vulnerable` logic
 
-To generate the id of SRO, a UUIDv5 is generated using the namespace `562918ee-d5da-5579-b6a1-fae50cc6bad3` and the `relationship_type+source_ref+target_ref` values.
+To generate the id of SRO, a UUIDv5 is generated using the namespace `152ecfe1-5015-522b-97e4-86b60c57036d` and the `relationship_type+source_ref+target_ref` values.
 
 
 ### Bundle
