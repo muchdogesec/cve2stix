@@ -25,4 +25,4 @@ kombu==5.4.2
 flower==2.0.1
 tqdm==4.67.1
 stix2extensions
-arango_cve_processor @ https://github.com/muchdogesec/arango_cve_processor/archive/refs/heads/use-dogesec-identity.zip #
+arango_cve_processor
