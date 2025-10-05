@@ -33,8 +33,6 @@ The output bundle takes the following structure:
 
 ![](docs/cve2stix-bundle-structure.jpg)
 
-[Watch the demo](https://www.youtube.com/watch?v=j8DWB7QF95g).
-
 ## Install the script
 
 ```shell
