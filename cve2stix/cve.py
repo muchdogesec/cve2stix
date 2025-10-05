@@ -205,9 +205,9 @@ class CVE:
                     "baseScore",
                     "baseSeverity",
                 ]:
-                    if cvss_value := cvss_data.get(cvss_key):
-                        cvss_key = pattern.sub("_", cvss_key).lower()
-                        metric[cvss_key] = cvss_value
+                    if cvss_key in cvss_data:
+                        cvss_key_snake = pattern.sub("_", cvss_key).lower()
+                        metric[cvss_key_snake] = cvss_data[cvss_key]
         except Exception as e:
             logging.error(e)
 
@@ -215,9 +215,10 @@ class CVE:
             retval[k] = sorted(
                 v,
                 key=lambda x: (
-                    (x["type"].lower() == "primary" and 1) or 10,
-                    x["base_score"],
+                    (x["type"].lower() == "primary" and 10) or 1,
+                    x.get("base_score", -1),
                 ),
+                reverse=True
             )
         return retval
 
