@@ -1,11 +1,11 @@
 import uuid
 from stix2 import Vulnerability, Indicator, Relationship
 from .config import DEFAULT_CONFIG as config
-from stix2extensions._extensions import (
-    indicator_vulnerable_cpes_ExtensionDefinitionSMO,
-)
+from stix2extensions import IndicatorVulnerableCPEPropertyExtension
 
 from cve2stix.utils import unescape_cpe_string
+
+indicator_vulnerable_cpes_ExtensionDefinitionSMO = IndicatorVulnerableCPEPropertyExtension.extension_definition
 
 
 def parse_cve_indicator(

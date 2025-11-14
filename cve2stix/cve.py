@@ -20,15 +20,15 @@ from stix2 import Identity
 
 from cve2stix.utils import fetch_url
 from .config import DEFAULT_CONFIG as config, Config
-from stix2extensions._extensions import (
-    vulnerability_scoring_ExtensionDefinitionSMO,
-    vulnerability_opencti_ExtensionDefinitionSMO,
-)
+from stix2extensions import VulnerabilityOpenCTIPropertiesExtension, VulnerabilityScoringExtension
 
 from cve2stix.indicator import parse_cve_indicator
 from stix2.datastore import DataSourceError
 
 from .loggings import logger
+
+vulnerability_scoring_ExtensionDefinitionSMO = VulnerabilityScoringExtension.extension_definition
+vulnerability_opencti_ExtensionDefinitionSMO = VulnerabilityOpenCTIPropertiesExtension.extension_definition
 
 
 def parse_date(date_str: str):
