@@ -25,4 +25,4 @@ kombu==5.4.2
 flower==2.0.1
 tqdm==4.67.1
 stix2extensions>=2.0.1
-arango_cve_processor
+arango_cve_processor>=1.4.3
