@@ -16,7 +16,7 @@ from .celery import cve_syncing_task, preparing_results
 from .loggings import logger
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from .utils import fetch_url
-from stix2extensions import _extensions as stix_extensions
+from stix2extensions.definitions.properties import VulnerabilityOpenCTIPropertiesExtension, VulnerabilityScoringExtension, IndicatorVulnerableCPEPropertyExtension, SoftwareCpePropertiesExtension
 
 sys.setrecursionlimit(10000)
 
@@ -44,10 +44,10 @@ def map_default_objects(config: Config, object_list: list):
 def map_extensions(config: Config, object_list: list):
     logger.info("Adding extensions")
     extensions = [
-        stix_extensions.indicator_vulnerable_cpes_ExtensionDefinitionSMO,
-        stix_extensions.vulnerability_scoring_ExtensionDefinitionSMO,
-        stix_extensions.software_cpe_properties_ExtensionDefinitionSMO,
-        stix_extensions.vulnerability_opencti_ExtensionDefinitionSMO,
+        VulnerabilityScoringExtension.extension_definition,
+        VulnerabilityOpenCTIPropertiesExtension.extension_definition,
+        IndicatorVulnerableCPEPropertyExtension.extension_definition,
+        SoftwareCpePropertiesExtension.extension_definition
     ]
     object_list.extend(extensions)
     config.fs.add(extensions)
