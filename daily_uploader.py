@@ -1,15 +1,17 @@
 import base64
 from datetime import datetime, timedelta, timezone
+import io
 import os
 from pathlib import Path
+import traceback
 import boto3
 from cve2stix.celery import start_celery
 from cve2stix.main import main as download_bundle
 import logging
 
 
-summary_file = open(os.getenv('GITHUB_STEP_SUMMARY', '/tmp/nothing'), 'a')
-print(f"### Create CVE bundle", file=summary_file)
+summary_file = open(os.getenv('GITHUB_STEP_SUMMARY', '/tmp/github_step_summary.md'), 'a')
+print(f"### Create CVE bundle\n", file=summary_file)
 
 def upload_file_to_s3(filepath, s3_path):
     logging.info("uploading to %s", s3_path)
@@ -32,7 +34,15 @@ s3_path = f"{yesterday.strftime('%Y-%m')}/cve-bundle-{dstr}-00_00_00-{dstr}-23_5
 output_filename = "stix2_objects/cve-bundle.json"
 
 logging.info("downloading bundle for %s", dstr.replace('_', '-'))
-download_bundle(yesterday.strftime("%Y-%m-%dT00:00:00"), yesterday.strftime("%Y-%m-%dT23:59:59"))
+try:
+    download_bundle(yesterday.strftime("%Y-%m-%dT00:00:00"), yesterday.strftime("%Y-%m-%dT23:59:59"))
+except Exception as e:
+    print(f"<details><summary>", file=summary_file)
+    print(f"<h4>❌ Error Downloading Bundle: {e}</h4>", file=summary_file)
+    print(f"</summary>\n<pre><code>", file=summary_file,end='')
+    traceback.print_exc(file=summary_file)
+    print("</code></pre>\n</details>", file=summary_file)
+    raise
 print("::endgroup::")
 
 if not Path(output_filename).exists():
