@@ -16,6 +16,10 @@ def parse_cve_indicator(
     cpe_names, pattern_so_far, cpeIds = build_patterns_for_cve(
         cve["id"], cve.get("configurations", [])
     )
+    if not pattern_so_far:
+        return None
+    if not cpe_names['vulnerable'] and not cpe_names['not_vulnerable']:
+        return None
 
     indicator_dict = {
         "id": "indicator--{}".format(
@@ -75,11 +79,11 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations):
     non_vulnerable_cpes = []
     cpe_names_all = []
     JOINER = " OR "
-
     for pconfig in pattern_configurations:
         pconfig_operator = " {} ".format(pconfig.get("operator", JOINER).strip())
         node_patterns = []
-        for node in pconfig.get("nodes", []):
+        nodes = pconfig.get("nodes", [])
+        for node in nodes:
             node_operator = " {} ".format(node.get("operator", JOINER).strip())
             node_matches = []
             for match in node.get("cpeMatch", []):
@@ -94,8 +98,8 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations):
                 else:
                     non_vulnerable_cpes.append(cpe_match)
             node_patterns.append("[{}]".format(node_operator.join(node_matches)))
-
-        patterns.append("({})".format(pconfig_operator.join(node_patterns)))
+        if node_patterns:
+            patterns.append("({})".format(pconfig_operator.join(node_patterns)))
     return (
         dict(not_vulnerable=non_vulnerable_cpes, vulnerable=vulnerable_cpe_names),
         JOINER.join(patterns),
