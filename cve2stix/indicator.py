@@ -79,7 +79,7 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations):
     for pconfig in pattern_configurations:
         pconfig_operator = " {} ".format(pconfig.get("operator", JOINER).strip())
         node_patterns = []
-        for node in pconfig.get("nodes"):
+        for node in pconfig.get("nodes", []):
             node_operator = " {} ".format(node.get("operator", JOINER).strip())
             node_matches = []
             for match in node.get("cpeMatch", []):
