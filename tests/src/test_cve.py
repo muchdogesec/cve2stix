@@ -4,12 +4,16 @@ import pytest
 from datetime import datetime, timezone
 from cve2stix import cve as cve_module
 from stix2 import parse as parse_stix
+from cve2stix.indicator import build_patterns_for_cve
 
 
 @pytest.fixture
 def example_cve(example_cve_response):
     return example_cve_response["vulnerabilities"][1]
 
+@pytest.fixture
+def example_cve2(example_cve_response):
+    return example_cve_response["vulnerabilities"][0]
 
 @pytest.fixture
 def example_cve_response():
@@ -607,6 +611,12 @@ def test_parse_cna(source_identity):
     assert json.loads(cve_module.parse_cna(cna_data).serialize()) == source_identity
 
 
+def test_build_pattern(example_cve2):
+    pattern = build_patterns_for_cve(example_cve2["cve"]["id"], example_cve2["cve"]["configurations"])[1]
+    expected_pattern = (
+        "([grouping:id='grouping--9a60b644-bd0f-5bd1-b352-cae9187f6d06' OR grouping:id='grouping--8eade122-52a7-50d9-9626-aaa520f1469b'])"
+    )
+    assert pattern == expected_pattern
 
 
 def test_fetch_source_map_online(source_identity):
