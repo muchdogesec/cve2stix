@@ -92,7 +92,10 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
     "x_opencti_cvss_vector_string": "<VALUE>",
     "x_opencti_cvss_v4_base_score": "<VALUE>",
     "x_opencti_cvss_v4_base_severity": "<VALUE>",
-    "x_opencti_cvss_v4_vector_string": "<VALUE>"
+    "x_opencti_cvss_v4_vector_string": "<VALUE>",
+    "x_opencti_cwe": [
+        "<vulnerabilities.cve.weaknesses.description.value[n]>"
+    ]
 }
 ```
 
