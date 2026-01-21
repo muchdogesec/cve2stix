@@ -4,7 +4,7 @@ from cve2stix.utils import fetch_url
 from .config import DEFAULT_CONFIG as config
 import logging
 from stix2.patterns import StringConstant
-from arango_cve_processor.tools.cpe import relate_indicator, parse_objects_for_criteria, parse_deprecations
+from arango_cve_processor.tools.cpe import relate_indicator, parse_objects_for_criteria, parse_deprecations, generate_grouping_id
 
 
 def unescape_cpe_string(cpe_string):

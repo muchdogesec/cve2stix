@@ -59,5 +59,5 @@ def fetch_url(url, config, callback, ratelimit_window=30):
     return all_responses_content
 
 
-def unescape_cpe_string(cpe_string):
+def make_stix_pattern_string(cpe_string):
     return str(StringConstant(cpe_string))

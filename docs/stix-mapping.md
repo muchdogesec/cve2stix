@@ -92,7 +92,10 @@ Using the response from the CVE API ([see the schema](https://csrc.nist.gov/sche
     "x_opencti_cvss_vector_string": "<VALUE>",
     "x_opencti_cvss_v4_base_score": "<VALUE>",
     "x_opencti_cvss_v4_base_severity": "<VALUE>",
-    "x_opencti_cvss_v4_vector_string": "<VALUE>"
+    "x_opencti_cvss_v4_vector_string": "<VALUE>",
+    "x_opencti_cwe": [
+        "<vulnerabilities.cve.weaknesses.description.value[n]>"
+    ]
 }
 ```
 
@@ -197,6 +200,13 @@ For example, if the CVE contained a simple node configuration with the following
 
 The logic to create the pattern is based on the node configurations inside the CVE (the operators used `AND`, `OR`, and parenthesis). You can read the logic cve2stix uses to generate the `pattern` in `docs/cpe-pattern-logic.md`
 
+
+However we don't use patterns like this in the indicators as we use groupings to track CPEs inside matchcriteria ids. Therefore the `grouping.id` instead of the `software.cpe` is used instead.
+
+```json
+    "pattern": "[ grouping.id = 'grouping--UUID ]"
+```
+
 Here is the structure of the Indicator SDO and how cve2stix populates it;
 
 ```json
@@ -221,10 +231,6 @@ Here is the structure of the Indicator SDO and how cve2stix populates it;
             "source_name": "cve",
             "external_id": "<vulnerabilities.cve.id>",
             "url": "https://nvd.nist.gov/vuln/detail/<vulnerabilities.cve.id>"
-        },
-        {
-            "source_name": "vulnerable_cpe",
-            "external_id": "<cpe_id>",
         }
     ],
     "object_marking_refs": [
@@ -240,13 +246,15 @@ Here is the structure of the Indicator SDO and how cve2stix populates it;
         "not_vulnerable": [
             {
                 "criteria": "<vulnerabilities.cve.configurations.nodes.cpeMatch.criteria (where vulnerable = true>",
-                "matchCriteriaId": "<vulnerabilities.cve.configurations.nodes.cpeMatch.matchCriteriaId (where vulnerable = true>"
+                "matchCriteriaId": "<vulnerabilities.cve.configurations.nodes.cpeMatch.matchCriteriaId (where vulnerable = true>",
+                "grouping_id": "<grouping--1234>"
             }
         ],
         "vulnerable": [
             {
                 "criteria": "<vulnerabilities.cve.configurations.nodes.cpeMatch.criteria (where vulnerable = false>",
-                "matchCriteriaId": "<vulnerabilities.cve.configurations.nodes.cpeMatch.matchCriteriaId (where vulnerable = false>"
+                "matchCriteriaId": "<vulnerabilities.cve.configurations.nodes.cpeMatch.matchCriteriaId (where vulnerable = false>",
+                "grouping_id": "<grouping--1234>"
             }
         ]
     }
@@ -507,7 +515,7 @@ The software object will also be marked `x_revoked` = `true` when this happens
 
 Note uses ACVEP marking-def and namespace, as this object is managed by this ACVEP later in the Vulmatch pipeline.
 
-### Indictor -> Grouping
+### Indicator -> Grouping
 
 **IMPORTANT: THIS LOGIC IS IMPORTED FROM ACVEP**
 
@@ -523,7 +531,7 @@ A relationship between the Indicator and corresponding Grouping object is made a
     "created_by_ref": "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
     "created": "<grouping created>",
     "modified": "<grouping modified>",
-    "relationship_type": "<x-cpes-vulnerable> OR <x-cpes-not-vulnerable>",
+    "relationship_type": "x-cpes-vulnerable> OR <x-cpes-not-vulnerable>",
     "source_ref": "indicator--<INDICATOR STIX OBJECT>",
     "target_ref": "grouping--<GROUPING TIX OBJECT>",
     "description": "<matchCriteriaId> <is vulnerable to> <is not vulnerable> to <Indicator name>",

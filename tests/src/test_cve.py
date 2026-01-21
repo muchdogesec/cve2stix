@@ -4,11 +4,17 @@ import pytest
 from datetime import datetime, timezone
 from cve2stix import cve as cve_module
 from stix2 import parse as parse_stix
+from cve2stix.indicator import build_patterns_for_cve
 
 
 @pytest.fixture
 def example_cve(example_cve_response):
     return example_cve_response["vulnerabilities"][1]
+
+
+@pytest.fixture
+def example_cve2(example_cve_response):
+    return example_cve_response["vulnerabilities"][0]
 
 
 @pytest.fixture
@@ -368,7 +374,7 @@ def test_parse_cve_vulnerability_builds_correct_vuln(example_cve, source_identit
             },
             {
                 "source_name": "cwe",
-                "url": "https://cwe.mitre.org/data/definitions/CWE-89.html",
+                "url": "https://cwe.mitre.org/data/definitions/89.html",
                 "external_id": "CWE-89",
             },
             {
@@ -421,6 +427,9 @@ def test_parse_cve_vulnerability_builds_correct_vuln(example_cve, source_identit
         "x_opencti_cvss_v2_base_score": 6.5,
         "x_opencti_cvss_v2_vector_string": "AV:N/AC:L/Au:S/C:P/I:P/A:P",
         "x_opencti_cvss_vector_string": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+        "x_opencti_cwe": [
+            "CWE-89",
+        ],
         "x_cvss": {
             "v3_1": [
                 {
@@ -458,7 +467,7 @@ def test_parse_cve_vulnerability_builds_correct_vuln(example_cve, source_identit
 
 
 def test_parse_other_references_includes_cwe_and_references(example_cve):
-    refs = cve_module.CVE.parse_other_references(example_cve["cve"])
+    _, refs = cve_module.CVE.parse_other_references(example_cve["cve"])
     cwe_refs = [r for r in refs if r["source_name"] == "cwe"]
     assert any("CWE-89" in r["external_id"] for r in cwe_refs)
     other_refs = [r for r in refs if r["source_name"] == "cna@vuldb.com"]
@@ -607,6 +616,12 @@ def test_parse_cna(source_identity):
     assert json.loads(cve_module.parse_cna(cna_data).serialize()) == source_identity
 
 
+def test_build_pattern(example_cve2):
+    pattern = build_patterns_for_cve(
+        example_cve2["cve"]["id"], example_cve2["cve"]["configurations"]
+    )[1]
+    expected_pattern = "([grouping:id='grouping--9a60b644-bd0f-5bd1-b352-cae9187f6d06' OR grouping:id='grouping--8eade122-52a7-50d9-9626-aaa520f1469b'])"
+    assert pattern == expected_pattern
 
 
 def test_fetch_source_map_online(source_identity):
