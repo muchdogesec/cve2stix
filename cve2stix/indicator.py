@@ -4,7 +4,7 @@ from .config import DEFAULT_CONFIG as config
 from stix2extensions import IndicatorVulnerableCPEPropertyExtension
 from .cpe_match import generate_grouping_id
 
-from cve2stix.utils import unescape_cpe_string
+from cve2stix.utils import make_stix_pattern_string
 
 indicator_vulnerable_cpes_ExtensionDefinitionSMO = IndicatorVulnerableCPEPropertyExtension.extension_definition
 
@@ -88,12 +88,12 @@ def build_patterns_for_cve(cve_id: str, pattern_configurations):
             node_operator = " {} ".format(node.get("operator", JOINER).strip())
             node_matches = []
             for match in node.get("cpeMatch", []):
-                grouping_stix_id = unescape_cpe_string(generate_grouping_id(match["matchCriteriaId"]))
+                grouping_stix_id = generate_grouping_id(match["matchCriteriaId"])
                 node_matches.append(
-                    f"grouping:id={grouping_stix_id}"
+                    f"grouping:id={make_stix_pattern_string(grouping_stix_id)}"
                 )
                 cpe_match = dict(
-                    criteria=match["criteria"], matchCriteriaId=match["matchCriteriaId"]
+                    criteria=match["criteria"], matchCriteriaId=match["matchCriteriaId"], match_criteria_ref=grouping_stix_id
                 )
                 if match.get("vulnerable"):
                     vulnerable_cpe_names.append(cpe_match)

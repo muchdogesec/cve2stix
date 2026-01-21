@@ -89,6 +89,7 @@ class CVE:
     @classmethod
     def parse_cve_vulnerability(cls, cve, created_by_ref) -> Vulnerability:
         cve_id = cve["id"]
+        cwe_ids, other_refs = cls.parse_other_references(cve)
         vulnerability_dict = {
             "id": "vulnerability--{}".format(
                 str(uuid.uuid5(config.namespace, f"{cve.get('id')}"))
@@ -105,7 +106,7 @@ class CVE:
                     "url": "https://nvd.nist.gov/vuln/detail/" + cve_id,
                 }
             ]
-            + cls.parse_other_references(cve),
+            + other_refs,
             "x_cvss": cls.parse_cvss_metrics(cve),
             "extensions": {
                 vulnerability_scoring_ExtensionDefinitionSMO.id: {
@@ -116,6 +117,7 @@ class CVE:
                 },
             },
             "labels": cls.get_cve_tags(cve),
+            "x_opencti_cwe": cwe_ids,
             "object_marking_refs": config.marking_refs,
         }
         if cve.get("vulnStatus").lower() in ["rejected", "revoked"]:
@@ -156,21 +158,24 @@ class CVE:
     @staticmethod
     def parse_other_references(cve: dict):
         references = []
+        cwes = []
         for weakness in cve.get("weaknesses", []):
             if weakness.get("description")[0].get("value") != "NVD-CWE-Other":
+                cwe_id = weakness.get("description")[0].get("value")
+                cwes.append(cwe_id)
                 references.append(
                     {
                         "source_name": "cwe",
-                        "external_id": weakness.get("description")[0].get("value"),
-                        "url": f"https://cwe.mitre.org/data/definitions/{weakness.get('description')[0].get('value')}.html",
+                        "external_id": cwe_id,
+                        "url": f"https://cwe.mitre.org/data/definitions/{cwe_id[4:]}.html",
                     }
                 )
 
         for reference in cve.get("references", []):
             references.append(
                 {
-                    "source_name": reference.get("source"),
-                    "url": reference.get("url"),
+                    "source_name": reference["source"],
+                    "url": reference["url"],
                     "description": ",".join(reference.get("tags", [])),
                 }
             )
@@ -181,7 +186,7 @@ class CVE:
                     "description": cve.get(key),
                 }
             )
-        return references
+        return cwes, references
 
     @staticmethod
     def parse_cvss_metrics(cve):
