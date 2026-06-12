@@ -6,6 +6,11 @@ permissions:
   
 on:
     workflow_dispatch:
+      inputs:
+        date:
+          description: '(default: yesterday) date to process [YYYY-MM-DD]'
+          required: false
+          type: string
 
     schedule:
       - cron: "5 11 * * *"  # 11:05 everyday. GitHub actions run at UTC, but NVD work to West Coast USA time. Thus, ensures update is carried out after US day ends.
@@ -59,6 +64,7 @@ jobs:
               env:
                 NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
                 REDIS_HOST: 127.0.0.1
+                DAY_TO_PROCESS: ${{ inputs.date }}
               run: |
                 set -e
                 if [[ -z "$NVD_API_KEY" ]]; then

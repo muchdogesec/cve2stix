@@ -26,16 +26,22 @@ print("::endgroup::")
 print("::group::Download Bundle from NVD")
 yesterday = datetime.now(timezone.utc) - timedelta(days=1)
 
-print(f"- {yesterday.date().isoformat()}", file=summary_file)
-print(f"- {yesterday.strftime('%a %B %-d, %Y')}", file=summary_file)
+if os.getenv('DAY_TO_PROCESS'):
+    day_to_process = datetime.fromisoformat(os.getenv('DAY_TO_PROCESS'))
+else:
+    day_to_process = yesterday
 
-dstr = yesterday.strftime('%Y_%m_%d')
-s3_path = f"{yesterday.strftime('%Y-%m')}/cve-bundle-{dstr}-00_00_00-{dstr}-23_59_59.json"
-output_filename = "stix2_objects/cve-bundle.json"
+print(f"- {day_to_process.date().isoformat()}", file=summary_file)
+print(f"- {day_to_process.strftime('%a %B %-d, %Y')}", file=summary_file)
+
+dstr = day_to_process.strftime('%Y_%m_%d')
+s3_path = f"{day_to_process.strftime('%Y-%m')}/cve-bundle-{dstr}-00_00_00-{dstr}-23_59_59.json"
+output_filename = Path("stix2_objects/cve-bundle.json")
 
 logging.info("downloading bundle for %s", dstr.replace('_', '-'))
 try:
-    download_bundle(yesterday.strftime("%Y-%m-%dT00:00:00"), yesterday.strftime("%Y-%m-%dT23:59:59"))
+    download_bundle(day_to_process.strftime("%Y-%m-%dT00:00:00"), day_to_process.strftime("%Y-%m-%dT23:59:59"))
+    logging.info("finished downloading bundle for %s", dstr.replace('_', '-'))
 except Exception as e:
     print(f"<details><summary>", file=summary_file)
     print(f"<h4>❌ Error Downloading Bundle: {e}</h4>", file=summary_file)
@@ -45,18 +51,26 @@ except Exception as e:
     raise
 print("::endgroup::")
 
-if not Path(output_filename).exists():
-    logging.info("output file not created")
-    print(f"❌ No bundle created", file=summary_file)
-    exit(19)
+missing_file = False
+if not output_filename.exists():
+    missing_file = True
+    logging.info("no files created, creating empty bundle...")
+    output_filename.write_text("{}")
 
 
 print("::group::Upload bundle to s3")
-logging.info("finished downloading bundle for %s", dstr.replace('_', '-'))
-upload_file_to_s3(output_filename, s3_path)
+upload_file_to_s3(str(output_filename), s3_path)
+exit_code = 0
 logging.info("bundle uploaded to `%s`", s3_path)
 
-print(f"✅ Bundle uploaded to {s3_path}", file=summary_file)
+if missing_file:
+    print(f"❌ Empty bundle uploaded to {s3_path}", file=summary_file)
+    exit_code = 19
+else:
+    print(f"✅ Bundle uploaded to {s3_path}", file=summary_file)
 
 celery_process.kill()
 print("::endgroup::")
+
+exit(exit_code)
+
