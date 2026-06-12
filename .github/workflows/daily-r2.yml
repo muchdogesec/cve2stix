@@ -15,6 +15,10 @@ on:
     schedule:
       - cron: "5 11 * * *"  # 11:05 everyday. GitHub actions run at UTC, but NVD work to West Coast USA time. Thus, ensures update is carried out after US day ends.
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
     upload-daily:
         runs-on: ubuntu-latest
