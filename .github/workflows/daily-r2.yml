@@ -1,14 +1,23 @@
 name: R2 Daily Upload
 # IMPORTANT: this script will fail if no data is detected. This is a failsafe to notify of potential issues because the NVD API can be unstable (e.g. reporting 0 results, when infact on the next run there are results for the same query)
-run-name: ${{ github.actor }} is running cve2stix
+run-name: ${{ github.actor }} is running cve2stix ${{ inputs.date && format('for {0}', inputs.date) || '' }}
 permissions:
   contents: read
   
 on:
     workflow_dispatch:
+      inputs:
+        date:
+          description: '(default: yesterday) date to process [YYYY-MM-DD]'
+          required: false
+          type: string
 
     schedule:
       - cron: "5 11 * * *"  # 11:05 everyday. GitHub actions run at UTC, but NVD work to West Coast USA time. Thus, ensures update is carried out after US day ends.
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
     upload-daily:
@@ -59,6 +68,7 @@ jobs:
               env:
                 NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
                 REDIS_HOST: 127.0.0.1
+                DAY_TO_PROCESS: ${{ inputs.date }}
               run: |
                 set -e
                 if [[ -z "$NVD_API_KEY" ]]; then
