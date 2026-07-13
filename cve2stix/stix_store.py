@@ -22,7 +22,7 @@ def _write_bundle(bundle, path):
     logging.info(f"writing output to: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
-        f.write(json.dumps(json.loads(bundle.serialize()), indent=4))
+        f.write(json.dumps(bundle, indent=4))
 
 
 def _count_by_type(objects):
@@ -56,7 +56,7 @@ def store_cve_in_bundle(stix_bundle_path, store, filename=None, cfg=None):
     for part_number, part in enumerate(parts, start=1):
         objects = store.read_chunk_objects(part)
         bundle = ChunkedFileSystemStore.make_bundle(objects, cfg)
-        object_counts = _count_by_type(bundle.objects)
+        object_counts = _count_by_type(bundle['objects'])
 
         bundle_name = f"bundle-{part_number:03d}.json"
         _write_bundle(bundle, base / bundle_name)
@@ -67,7 +67,7 @@ def store_cve_in_bundle(stix_bundle_path, store, filename=None, cfg=None):
             {
                 "name": bundle_name,
                 "number": part_number,
-                "id": bundle.id,
+                "id": bundle['id'],
                 "object_counts": object_counts,
             }
         )

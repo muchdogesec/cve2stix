@@ -161,4 +161,4 @@ class ChunkedFileSystemStore:
         bundle_id = "bundle--" + str(
             uuid.uuid5(config.namespace, generate_md5_from_list(all_objects))
         )
-        return Bundle(id=bundle_id, objects=all_objects, allow_custom=True)
+        return dict(type="bundle", id=bundle_id, objects=all_objects)
