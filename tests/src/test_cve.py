@@ -1,5 +1,5 @@
 import json
-from unittest.mock import call, patch
+from unittest.mock import MagicMock, call, patch
 import pytest
 from datetime import datetime, timezone
 from cve2stix import cve as cve_module
@@ -518,24 +518,26 @@ def test_get_cve_tags_empty_list_for_empty_tags(example_cve):
 
 def test_parse_cve_api_response_parses_all():
     resp = {"vulnerabilities": [1, 2]}
-    with (
-        patch("cve2stix.cve.CVE.from_dict") as mock_cve,
-        patch("stix2.FileSystemStore.add") as mock_fs_add,
-    ):
+    with patch("cve2stix.cve.CVE.from_dict") as mock_cve:
         mock_cve.return_value.objects = [3, 4, 5]
-        cve_module.parse_cve_api_response(resp, cve_module.config)
+        config = cve_module.config
+        config.store = MagicMock()
+        cve_module.parse_cve_api_response(resp, config)
         assert isinstance(
             cve_module.CVE.source_map, dict
         ), f"bad source_map: {cve_module.CVE.source_map}"
         mock_cve.assert_has_calls([call(1), call(2)], any_order=True)
-        mock_fs_add.assert_has_calls([call(3), call(4), call(5)], any_order=True)
+        config.store.add_all.assert_has_calls([call([3, 4, 5]), call([3, 4, 5])])
+        config.store.end_chunk.assert_called_once()
 
 
 def test_parse_cve_api_response(example_cve_response):
     objects = []
-    with patch("stix2.FileSystemStore.add", side_effect=objects.append) as mock_fs_add:
-        cve_module.parse_cve_api_response(example_cve_response, cve_module.config)
-        mock_fs_add.assert_called()
+    config = cve_module.config
+    config.store = MagicMock()
+    config.store.add_all.side_effect = lambda objs: objects.extend(objs)
+    cve_module.parse_cve_api_response(example_cve_response, config)
+    config.store.add_all.assert_called()
 
     assert isinstance(
         cve_module.CVE.source_map, dict

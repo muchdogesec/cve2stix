@@ -35,12 +35,11 @@ print(f"- {day_to_process.date().isoformat()}", file=summary_file)
 print(f"- {day_to_process.strftime('%a %B %-d, %Y')}", file=summary_file)
 
 dstr = day_to_process.strftime('%Y_%m_%d')
-s3_path = f"{day_to_process.strftime('%Y-%m')}/cve-bundle-{dstr}-00_00_00-{dstr}-23_59_59.json"
-output_filename = Path("stix2_objects/cve-bundle.json")
+s3_prefix = f"{day_to_process.strftime('%Y-%m')}/cve-bundle-{dstr}-00_00_00-{dstr}-23_59_59"
 
 logging.info("downloading bundle for %s", dstr.replace('_', '-'))
 try:
-    download_bundle(day_to_process.strftime("%Y-%m-%dT00:00:00"), day_to_process.strftime("%Y-%m-%dT23:59:59"))
+    result = download_bundle(day_to_process.strftime("%Y-%m-%dT00:00:00"), day_to_process.strftime("%Y-%m-%dT23:59:59"))
     logging.info("finished downloading bundle for %s", dstr.replace('_', '-'))
 except Exception as e:
     print(f"<details><summary>", file=summary_file)
@@ -51,23 +50,25 @@ except Exception as e:
     raise
 print("::endgroup::")
 
-missing_file = False
-if not output_filename.exists():
-    missing_file = True
-    logging.info("no files created, creating empty bundle...")
-    output_filename.write_text("{}")
-
 
 print("::group::Upload bundle to s3")
-upload_file_to_s3(str(output_filename), s3_path)
 exit_code = 0
-logging.info("bundle uploaded to `%s`", s3_path)
 
-if missing_file:
-    print(f"❌ Empty bundle uploaded to {s3_path}", file=summary_file)
+# Every range is written as a directory holding meta.json plus one or more
+# bundle-*.json files. Upload the whole directory under the range's prefix.
+output_dir = Path(result["path"])
+uploaded = []
+for file in sorted(output_dir.iterdir()):
+    dest = f"{s3_prefix}/{file.name}"
+    upload_file_to_s3(str(file), dest)
+    uploaded.append(dest)
+logging.info("uploaded %d files to %s/", len(uploaded), s3_prefix)
+
+if result["total_objects"] == 0:
+    print(f"❌ Empty range (meta only) uploaded to {s3_prefix}/", file=summary_file)
     exit_code = 19
 else:
-    print(f"✅ Bundle uploaded to {s3_path}", file=summary_file)
+    print(f"✅ {len(result['bundles'])} bundles uploaded to {s3_prefix}/", file=summary_file)
 
 celery_process.kill()
 print("::endgroup::")
