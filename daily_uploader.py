@@ -69,7 +69,7 @@ def upload(directory, s3_prefix, result):
         upload_file_to_s3(str(file), dest)
         uploaded.append(dest)
         print(
-            f"✅ uploaded {file.name} to {dest}",
+            f"✅ uploaded `{file.name}`",
             file=summary_file,
         )
 
@@ -78,13 +78,13 @@ def upload(directory, s3_prefix, result):
     exit_code = 0
     if result["total_objects"] == 0:
         print(
-            f"❌ Empty range (meta only) uploaded to {s3_prefix}/",
+            f"❌ Empty range (meta only) uploaded to `{s3_prefix}/`",
             file=summary_file,
         )
         exit_code = 19
     else:
         print(
-            f"✅ {len(result['bundles'])} bundles uploaded to {s3_prefix}/",
+            f"✅ {len(result['bundles'])} bundles uploaded to `{s3_prefix}/`",
             file=summary_file,
         )
 
