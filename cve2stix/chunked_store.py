@@ -3,7 +3,7 @@ Wrapper around FileSystemStore to track chunks of objects.
 """
 
 import contextlib
-import json
+import orjson
 import os
 import uuid
 import logging
@@ -34,8 +34,8 @@ class ChunkedFileSystemStore:
         store = cls(file_system_path, chunk_per_part)
         store._all_chunks = []
         for chunk_file in sorted(Path(file_system_path).glob("chunk-*.json")):
-            with open(chunk_file) as f:
-                store._all_chunks.append(json.load(f))
+            with open(chunk_file, "rb") as f:
+                store._all_chunks.append(orjson.loads(f.read()))
         return store
 
     def _initialize_chunk(self):
@@ -81,8 +81,8 @@ class ChunkedFileSystemStore:
         }
 
         os.makedirs(self.file_system_path, exist_ok=True)
-        with open(self._chunk_file_path, "w") as f:
-            json.dump(chunk_data, f)
+        with open(self._chunk_file_path, "wb") as f:
+            f.write(orjson.dumps(chunk_data))
 
         logging.info(
             f"Chunk {self._chunk_id} finalized: {len(self._current_chunk_objects)} objects"
@@ -106,8 +106,8 @@ class ChunkedFileSystemStore:
     def read_object(self, object_id):
         """Read a single object back from disk by its id."""
         path = self.get_file_path_for_object(object_id)
-        with open(path) as f:
-            return json.load(f)
+        with open(path, "rb") as f:
+            return orjson.loads(f.read())
         
     def get_chunk_objects_id(self, chunks):
         """Return the object ids referenced by a chunk or list of chunks."""
@@ -155,7 +155,7 @@ class ChunkedFileSystemStore:
         ]
         all_objects = (
             list(config.default_objects)
-            + [json.loads(extension.serialize()) for extension in extensions]
+            + [orjson.loads(extension.serialize()) for extension in extensions]
             + list(objects)
         )
         bundle_id = "bundle--" + str(

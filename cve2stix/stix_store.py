@@ -2,12 +2,13 @@
 Contains logic for storing parsed stix objects as chunked bundles.
 """
 
-import json
+import orjson
 import logging
 from pathlib import Path
 from collections import defaultdict
 
 from .chunked_store import ChunkedFileSystemStore
+from .config import Config
 
 
 def _bundle_base_path(stix_bundle_path, filename):
@@ -21,8 +22,8 @@ def _bundle_base_path(stix_bundle_path, filename):
 def _write_bundle(bundle, path):
     logging.info(f"writing output to: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w") as f:
-        f.write(json.dumps(bundle, indent=4))
+    with open(path, "wb") as f:
+        f.write(orjson.dumps(bundle, option=orjson.OPT_INDENT_2))
 
 
 def _count_by_type(objects):
@@ -32,7 +33,7 @@ def _count_by_type(objects):
     return dict(counts)
 
 
-def store_cve_in_bundle(stix_bundle_path, store, filename=None, cfg=None):
+def store_cve_in_bundle(stix_bundle_path, store, filename=None, cfg: Config=None):
     """Group the store's chunks into parts and write one bundle per part.
 
     Every time range is written as a directory `<base>/` holding one
@@ -55,10 +56,10 @@ def store_cve_in_bundle(stix_bundle_path, store, filename=None, cfg=None):
 
     for part_number, part in enumerate(parts, start=1):
         objects = store.read_chunk_objects(part)
-        bundle = ChunkedFileSystemStore.make_bundle(objects, cfg)
+        bundle = store.make_bundle(objects, cfg)
         object_counts = _count_by_type(bundle['objects'])
 
-        bundle_name = f"bundle-{part_number:03d}.json"
+        bundle_name = f"{cfg.filename}-{part_number:03d}.json"
         _write_bundle(bundle, base / bundle_name)
 
         for obj_type, count in object_counts.items():
@@ -77,11 +78,13 @@ def store_cve_in_bundle(stix_bundle_path, store, filename=None, cfg=None):
         "total_objects": sum(total_object_counts.values()),
         "total_object_counts": dict(total_object_counts),
         "bundles": bundle_manifests,
+        "start_date": cfg.start_date,
+        "end_date": cfg.end_date,
     }
     meta_file = base / "meta.json"
     logging.info(f"writing metadata to: {meta_file}")
-    with open(meta_file, "w") as f:
-        json.dump(meta_data, f, indent=4)
+    with open(meta_file, "wb") as f:
+        f.write(orjson.dumps(meta_data, option=orjson.OPT_INDENT_2))
 
     return {
         "path": str(base),

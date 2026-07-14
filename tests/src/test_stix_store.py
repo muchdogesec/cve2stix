@@ -1,4 +1,4 @@
-import json
+import orjson
 import uuid
 from pathlib import Path
 import pytest
@@ -59,7 +59,7 @@ def test_single_part_writes_directory_with_meta(cfg):
     # no per-bundle meta files
     assert not any(n.endswith(".meta.json") for n in names)
 
-    content = json.loads((out / "bundle-001.json").read_text())
+    content = orjson.loads((out / "bundle-001.json").read_text())
     assert content["type"] == "bundle"
 
 
@@ -79,7 +79,7 @@ def test_multi_part_writes_directory_with_meta(cfg):
     # per-bundle meta files must not be produced
     assert not any(n.endswith(".meta.json") for n in names)
 
-    meta = json.loads((out / "meta.json").read_text())
+    meta = orjson.loads((out / "meta.json").read_text())
     assert meta["total_bundles"] == 3
     assert meta["total_object_counts"].get("vulnerability") == 5
     assert [b["name"] for b in meta["bundles"]] == [
@@ -104,7 +104,7 @@ def test_empty_range_still_writes_meta(cfg):
     assert result["total_objects"] == 0
     assert result["bundles"] == []
 
-    meta = json.loads((out / "meta.json").read_text())
+    meta = orjson.loads((out / "meta.json").read_text())
     assert meta["total_bundles"] == 0
     assert meta["bundles"] == []
 
@@ -115,7 +115,7 @@ def test_bundle_includes_default_objects_and_extensions(cfg):
         cfg.stix2_bundles_folder, store, filename="d.json", cfg=cfg
     )
 
-    content = json.loads((Path(result["path"]) / "bundle-001.json").read_text())
+    content = orjson.loads((Path(result["path"]) / "bundle-001.json").read_text())
     ids = {obj["id"] for obj in content["objects"]}
     # default objects
     assert {

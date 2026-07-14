@@ -1,6 +1,6 @@
 from functools import lru_cache
 import requests
-import json
+import orjson
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -61,6 +61,7 @@ class Config:
         if os.getenv("CTI_DATA_FOLDER_CVE")
         else REPO_FOLDER / "stix2_objects"
     )
+    filename: str = "cves"
     store_in_filestore: bool = True
     disable_parsing: bool = False
     cve_id: str = ""
@@ -85,11 +86,11 @@ class Config:
 
     CVE2STIX_IDENTITY_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/identity/dogesec.json"
     CVE2STIX_MARKING_DEFINITION_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/marking-definition/cve2stix.json"
-    CVE2STIX_IDENTITY_OBJECT = json.loads(load_file_from_url(url=CVE2STIX_IDENTITY_URL))
-    CVE2STIX_MARKING_DEFINITION_OBJECT = json.loads(
+    CVE2STIX_IDENTITY_OBJECT = orjson.loads(load_file_from_url(url=CVE2STIX_IDENTITY_URL))
+    CVE2STIX_MARKING_DEFINITION_OBJECT = orjson.loads(
         load_file_from_url(url=CVE2STIX_MARKING_DEFINITION_URL)
     )
-    ACVEP_MARKING_DEFINITION_OBJECT = json.loads(
+    ACVEP_MARKING_DEFINITION_OBJECT = orjson.loads(
         load_file_from_url(url=ACVEP_MARKING_DEF_URL)
     )
 

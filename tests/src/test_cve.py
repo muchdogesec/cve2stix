@@ -1,4 +1,4 @@
-import json
+import orjson
 from unittest.mock import MagicMock, call, patch
 import pytest
 from datetime import datetime, timezone
@@ -357,7 +357,7 @@ def test_parse_cve_vulnerability_builds_correct_vuln(example_cve, source_identit
     vuln = cve_module.CVE.parse_cve_vulnerability(
         example_cve["cve"], source_identity["id"]
     )
-    assert json.loads(vuln.serialize()) == {
+    assert orjson.loads(vuln.serialize()) == {
         "type": "vulnerability",
         "spec_version": "2.1",
         "id": "vulnerability--46ef129c-a626-57ab-b55c-61c8e52e3cb5",
@@ -615,7 +615,7 @@ def test_parse_cna(source_identity):
             "lastModified": "2025-10-04T00:00:00.080",
         },
     }
-    assert json.loads(cve_module.parse_cna(cna_data).serialize()) == source_identity
+    assert orjson.loads(cve_module.parse_cna(cna_data).serialize()) == source_identity
 
 
 def test_build_pattern(example_cve2):

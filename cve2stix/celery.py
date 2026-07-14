@@ -64,7 +64,8 @@ def start_celery(path: str, cwd=".", app=app):
         "worker",
         "--loglevel",
         "info",
-        "--purge"
+        "--purge",
+        # "--pool=solo"
     ]
     p = subprocess.Popen(args, stdout=sys.stdout, stderr=sys.stderr)
 
