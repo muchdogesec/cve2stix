@@ -1,6 +1,6 @@
 from functools import lru_cache
 import requests
-import json
+import orjson
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -10,9 +10,9 @@ from stix2 import FileSystemStore
 from uuid import UUID
 from enum import StrEnum
 from arango_cve_processor.config import MARKING_DEF_URL as ACVEP_MARKING_DEF_URL
+from .chunked_store import ChunkedFileSystemStore
 
 load_dotenv()
-
 
 @lru_cache
 def load_file_from_url(url):
@@ -23,7 +23,6 @@ def load_file_from_url(url):
     except requests.exceptions.RequestException as e:
         print(f"Error loading JSON from {url}: {e}")
         return None
-
 
 def validate_date_from_env(key):
     try:
@@ -62,6 +61,7 @@ class Config:
         if os.getenv("CTI_DATA_FOLDER_CVE")
         else REPO_FOLDER / "stix2_objects"
     )
+    filename: str = "cves"
     store_in_filestore: bool = True
     disable_parsing: bool = False
     cve_id: str = ""
@@ -71,6 +71,7 @@ class Config:
         "https://services.nvd.nist.gov/rest/json/cpematch/2.0?cveId="
     )
     results_per_page: int = int(os.getenv("RESULTS_PER_PAGE", 500))
+    chunk_per_part: int = int(os.getenv("CHUNK_PER_PART", 10))
     nvd_api_key: str = os.getenv("NVD_API_KEY")
     file_system: str = (
         os.getenv("CTI_DATA_FOLDER_CVE")
@@ -81,14 +82,15 @@ class Config:
         os.makedirs(file_system)
     namespace = UUID("562918ee-d5da-5579-b6a1-fae50cc6bad3")
     data_path = REPO_FOLDER
+    store: ChunkedFileSystemStore = None
 
     CVE2STIX_IDENTITY_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/identity/dogesec.json"
     CVE2STIX_MARKING_DEFINITION_URL = "https://raw.githubusercontent.com/muchdogesec/stix4doge/main/objects/marking-definition/cve2stix.json"
-    CVE2STIX_IDENTITY_OBJECT = json.loads(load_file_from_url(url=CVE2STIX_IDENTITY_URL))
-    CVE2STIX_MARKING_DEFINITION_OBJECT = json.loads(
+    CVE2STIX_IDENTITY_OBJECT = orjson.loads(load_file_from_url(url=CVE2STIX_IDENTITY_URL))
+    CVE2STIX_MARKING_DEFINITION_OBJECT = orjson.loads(
         load_file_from_url(url=CVE2STIX_MARKING_DEFINITION_URL)
     )
-    ACVEP_MARKING_DEFINITION_OBJECT = json.loads(
+    ACVEP_MARKING_DEFINITION_OBJECT = orjson.loads(
         load_file_from_url(url=ACVEP_MARKING_DEF_URL)
     )
 
@@ -101,10 +103,6 @@ class Config:
 
     CPE_MATCH_FEED_URL = "https://services.nvd.nist.gov/rest/json/cpematch/2.0"
     SOURCE_IDENTIFIERS_URL = "https://services.nvd.nist.gov/rest/json/source/2.0"
-
-    @property
-    def fs(self):
-        return FileSystemStore(self.file_system)
 
     @property
     def marking_refs(self):

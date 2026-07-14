@@ -151,14 +151,19 @@ def run():
         subdir = start_date.strftime('%Y-%m') if time_unit == 'd' else start_date.strftime('%Y')
         file_system = OBJECTS_PARENT / f"cve_objects-{start_day}-{end_day}"
         file_system.mkdir(parents=True, exist_ok=True)
-        bundle_name = f"{subdir}/cve-bundle-{start_day}-{end_day}.json"
-        (BUNDLE_PATH / bundle_name).parent.mkdir(parents=True, exist_ok=True)
-
+        if time_unit == 'd':
+            filename = "cves-"+ start_date.strftime('%Y%m%d')
+        elif time_unit == 'm':
+            filename = "cves-" + start_date.strftime('%Y%m')
+        elif time_unit == 'y':
+            filename = "cves-" + start_date.strftime('%Y')
+        
         download_bundle(
             start_date,
             end_date,
-            filename=bundle_name,
+            filename=f"{subdir}/{filename}",
             config=Config(
+                filename=filename,
                 start_date=start_date,
                 end_date=end_date,
                 stix2_objects_folder=str(file_system),

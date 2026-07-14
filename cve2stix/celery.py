@@ -1,7 +1,7 @@
 import logging
 from celery import Celery
 from .stix_store import store_cve_in_bundle
-from stix2.datastore.filters import Filter
+from .chunked_store import ChunkedFileSystemStore
 from .config import Config
 
 import logging
@@ -29,25 +29,22 @@ app.autodiscover_tasks()
 def cve_syncing_task(start, end, config):
     from .main import fetch_data
 
+    config.pop("store", None)
     config = Config(**config)
     fetch_data(start, end, config)
 
 
 @app.task()
 def preparing_results(task_results, config, filename=None):
-    from .main import map_default_objects, map_extensions
-
+    config.pop("store", None)
     config = Config(**config)
-    results = []
-    results = map_default_objects(config, results)
-    results = map_extensions(config, results)
-
-    vulnerabilities = config.fs.query([Filter("type", "=", "vulnerability")])
-    if vulnerabilities:
-        all_objects = config.fs.query([Filter("type", "!=", "")])
-        store_cve_in_bundle(config.stix2_bundles_folder, all_objects, filename)
-    else:
-        logging.info("Not writing any file because no output")
+    config.store = ChunkedFileSystemStore.from_dir(
+        config.file_system, config.chunk_per_part
+    )
+    # Always writes a directory with meta.json, even when there is no output.
+    return store_cve_in_bundle(
+        config.stix2_bundles_folder, config.store, filename, config
+    )
 
 
 def check_online_status(app: Celery = app):
@@ -68,6 +65,7 @@ def start_celery(path: str, cwd=".", app=app):
         "--loglevel",
         "info",
         "--purge",
+        # "--pool=solo"
     ]
     p = subprocess.Popen(args, stdout=sys.stdout, stderr=sys.stderr)
 

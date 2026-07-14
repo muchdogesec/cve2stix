@@ -23,7 +23,6 @@ from .config import DEFAULT_CONFIG as config, Config
 from stix2extensions import VulnerabilityOpenCTIPropertiesExtension, VulnerabilityScoringExtension
 
 from cve2stix.indicator import parse_cve_indicator
-from stix2.datastore import DataSourceError
 
 from .loggings import logger
 
@@ -241,9 +240,8 @@ def parse_cve_api_response(cve_content, config: Config) -> List[CVE]:
     for cve_item in cve_content["vulnerabilities"]:
         cve = CVE.from_dict(cve_item)
         logger.info(f"CVE-> {cve.name}")
-        for object in cve.objects:
-            with contextlib.suppress(DataSourceError):
-                config.fs.add(object)
+        config.store.add_all(cve.objects)
+    config.store.end_chunk()
     return parsed_response
 
 

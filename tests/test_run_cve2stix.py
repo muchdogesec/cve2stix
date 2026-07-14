@@ -216,8 +216,9 @@ def test_run_mod_mode(monkeypatch, patched_env):
         call(
             dt(2025, 7, 1, 0, 0, tzinfo=UTC),
             dt(2025, 7, 1, 23, 59, 59, tzinfo=UTC),
-            filename="2025-07/cve-bundle-2025_07_01-00_00_00-2025_07_01-23_59_59.json",
+            filename="2025-07/cves-20250701",
             config=Config(
+                filename="cves-20250701",
                 type="cve",
                 filter_mode="lastMod",
                 start_date=dt(2025, 7, 1, 0, 0, tzinfo=UTC),
@@ -237,8 +238,9 @@ def test_run_mod_mode(monkeypatch, patched_env):
         call(
             dt(2025, 7, 2, 0, 0, tzinfo=UTC),
             dt(2025, 7, 2, 23, 59, 59, tzinfo=UTC),
-            filename="2025-07/cve-bundle-2025_07_02-00_00_00-2025_07_02-23_59_59.json",
+            filename="2025-07/cves-20250702",
             config=Config(
+                filename="cves-20250702",
                 type="cve",
                 filter_mode="lastMod",
                 start_date=dt(2025, 7, 2, 0, 0, tzinfo=UTC),
@@ -257,8 +259,9 @@ def test_run_mod_mode(monkeypatch, patched_env):
         call(
             dt(2025, 7, 3, 0, 0, tzinfo=UTC),
             dt(2025, 7, 3, 23, 59, 59, tzinfo=UTC),
-            filename="2025-07/cve-bundle-2025_07_03-00_00_00-2025_07_03-23_59_59.json",
+            filename="2025-07/cves-20250703",
             config=Config(
+                filename="cves-20250703",
                 type="cve",
                 filter_mode="lastMod",
                 start_date=dt(2025, 7, 3, 0, 0, tzinfo=UTC),

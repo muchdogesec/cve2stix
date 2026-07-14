@@ -5,7 +5,6 @@ Miscellaneous helper functions
 import os
 import shutil
 import hashlib
-import json
 from stix2 import new_version
 from stix2.exceptions import InvalidValueError
 import logging

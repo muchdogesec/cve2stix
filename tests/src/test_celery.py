@@ -61,34 +61,17 @@ def test_cve_syncing_task_calls_fetch_data(mock_fetch_data):
     assert isinstance(called_args[2], celery_mod.Config)
 
 
-@patch("cve2stix.main.map_extensions")
-@patch("cve2stix.main.map_default_objects")
 @patch("cve2stix.celery.store_cve_in_bundle")
-@pytest.mark.parametrize(
-    "returns_vulnerabilities",
-    [True, False]
-)
-def test_preparing_results_pipeline(
-    mock_store_bundle,
-    mock_defaults,
-    mock_extensions,
-    returns_vulnerabilities
-):
-    mock_defaults.return_value = ["m"]
-    mock_extensions.return_value = ["e"]
+@patch("cve2stix.celery.ChunkedFileSystemStore")
+def test_preparing_results_pipeline(mock_store_cls, mock_store_bundle):
+    mock_store = MagicMock()
+    mock_store_cls.from_dir.return_value = mock_store
+    mock_store_bundle.return_value = {"path": "/tmp/out", "bundles": [], "total_objects": 0}
 
     dummy_conf = {"file_system": "/tmp", "stix2_bundles_folder": "/tmp"}
-    dummy_config = celery_mod.Config(**dummy_conf)
+    result = celery_mod.preparing_results(["results"], dict(dummy_conf), "test.json")
 
-    with patch('stix2.FileSystemStore.query') as mock_query:
-        mock_query.return_value = returns_vulnerabilities
-        celery_mod.preparing_results(["results"], dummy_conf, "test.json")
-        if returns_vulnerabilities:
-            mock_query.call_count == 2
-            mock_store_bundle.assert_called_once_with("/tmp", mock_query.return_value, "test.json")
-        else:
-            mock_query.assert_called_once()
-            mock_store_bundle.assert_not_called()
-
-    mock_defaults.assert_called_once()
-    mock_extensions.assert_called_once()
+    # A directory + meta.json is always written, even when there is no output.
+    mock_store_cls.from_dir.assert_called_once()
+    mock_store_bundle.assert_called_once_with("/tmp", mock_store, "test.json", mock.ANY)
+    assert result == {"path": "/tmp/out", "bundles": [], "total_objects": 0}

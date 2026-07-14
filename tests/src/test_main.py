@@ -56,31 +56,6 @@ def test_parse_date_variants():
     assert d3.year == 2025 and d3.month == 7
 
 
-def test_map_default_objects(config):
-    obj_list = []
-    with patch("stix2.FileSystemStore.add") as mock_fs_add:
-        out = main.map_default_objects(config, obj_list)
-        assert {o["id"] for o in out} == {
-            "marking-definition--562918ee-d5da-5579-b6a1-fae50cc6bad3",
-            "marking-definition--152ecfe1-5015-522b-97e4-86b60c57036d",
-            "identity--9779a2db-f98c-5f4b-8d08-8ee04e02dbb5",
-        }
-        mock_fs_add.assert_called_once_with(out)
-
-
-def test_map_extensions(config):
-    with patch("stix2.FileSystemStore.add") as mock_fs_add:
-        obj_list = [1, 2, 3]
-        out = main.map_extensions(config, obj_list)
-        assert {d["id"] for d in out[3:]} == {
-            "extension-definition--2c5c13af-ee92-5246-9ba7-0b958f8cd34a",
-            "extension-definition--82cad0bb-0906-5885-95cc-cafe5ee0a500",
-            "extension-definition--ec658473-1319-53b4-879f-488e47805554",
-            "extension-definition--ad995824-2901-5f6e-890b-561130a239d4",
-        }
-        mock_fs_add.assert_called_with(out[3:])  # last 3 are extensions
-
-
 def test_fetch_data(config):
     with patch("cve2stix.main.fetch_url") as mock_fetch_url:
         config.filter_mode = FilterMode.MOD_DATE
