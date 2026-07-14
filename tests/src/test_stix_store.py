@@ -47,6 +47,7 @@ def _populate(cfg, num_pages):
 
 
 def test_single_part_writes_directory_with_meta(cfg):
+    cfg.filename = "cves-single-part"
     store = _populate(cfg, num_pages=1)
     result = stix_store.store_cve_in_bundle(
         cfg.stix2_bundles_folder, store, filename="data.json", cfg=cfg
@@ -55,16 +56,17 @@ def test_single_part_writes_directory_with_meta(cfg):
     out = Path(result["path"])
     assert out.is_dir()
     names = {p.name for p in out.iterdir()}
-    assert names == {"meta.json", "bundle-001.json"}
+    assert names == {"meta.json", "cves-single-part-001.json"}
     # no per-bundle meta files
     assert not any(n.endswith(".meta.json") for n in names)
 
-    content = orjson.loads((out / "bundle-001.json").read_text())
+    content = orjson.loads((out / "cves-single-part-001.json").read_text())
     assert content["type"] == "bundle"
 
 
 def test_multi_part_writes_directory_with_meta(cfg):
     # chunk_per_part=2, 5 pages -> ceil(5/2) = 3 parts
+    cfg.filename = "cves-multi-part"
     store = _populate(cfg, num_pages=5)
     result = stix_store.store_cve_in_bundle(
         cfg.stix2_bundles_folder, store, filename="range.json", cfg=cfg
@@ -75,7 +77,7 @@ def test_multi_part_writes_directory_with_meta(cfg):
 
     names = {p.name for p in out.iterdir()}
     assert "meta.json" in names
-    assert {"bundle-001.json", "bundle-002.json", "bundle-003.json"} <= names
+    assert {"cves-multi-part-001.json", "cves-multi-part-002.json", "cves-multi-part-003.json"} <= names
     # per-bundle meta files must not be produced
     assert not any(n.endswith(".meta.json") for n in names)
 
@@ -83,9 +85,9 @@ def test_multi_part_writes_directory_with_meta(cfg):
     assert meta["total_bundles"] == 3
     assert meta["total_object_counts"].get("vulnerability") == 5
     assert [b["name"] for b in meta["bundles"]] == [
-        "bundle-001.json",
-        "bundle-002.json",
-        "bundle-003.json",
+        "cves-multi-part-001.json",
+        "cves-multi-part-002.json",
+        "cves-multi-part-003.json",
     ]
 
 
@@ -110,12 +112,13 @@ def test_empty_range_still_writes_meta(cfg):
 
 
 def test_bundle_includes_default_objects_and_extensions(cfg):
+    cfg.filename = "cves-defaults"
     store = _populate(cfg, num_pages=1)
     result = stix_store.store_cve_in_bundle(
         cfg.stix2_bundles_folder, store, filename="d.json", cfg=cfg
     )
 
-    content = orjson.loads((Path(result["path"]) / "bundle-001.json").read_text())
+    content = orjson.loads((Path(result["path"]) / "cves-defaults-001.json").read_text())
     ids = {obj["id"] for obj in content["objects"]}
     # default objects
     assert {
