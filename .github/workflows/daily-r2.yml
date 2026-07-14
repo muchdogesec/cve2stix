@@ -77,4 +77,4 @@ jobs:
 
                 source cve2stix_helper-venv/bin/activate
 
-                python daily_uploader.py
+                python daily_uploader.py fetch
