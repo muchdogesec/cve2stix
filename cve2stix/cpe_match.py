@@ -38,7 +38,21 @@ def parse_cpe_matches(
     deprecations = []
 
     for match_data in get_matches_for_cve(cve_id=indicator.name):
-        objects = parse_objects_for_criteria(match_data)
+        try:
+            objects = parse_objects_for_criteria(match_data)
+        except ValueError as exc:
+            # NVD's CVE match feed can reference a SWID that its CPE dictionary and
+            # CPE API do not contain. That is one broken match criterion, not a reason
+            # to discard the CVE or every other CVE modified that day. Before this
+            # boundary, one such SWID failed the whole Celery chord: the 2026-08-19
+            # daily run dropped 1,343 NVD updates and never published meta.json.
+            logging.error(
+                "skipping unresolvable CPE match %s for %s: %s",
+                match_data.get("matchCriteriaId", "<unknown>"),
+                indicator.name,
+                exc,
+            )
+            continue
         softwares.update({obj["id"]: obj for obj in objects[1:]})
         groupings.append(objects[0])
         relationships.extend(relate_indicator(objects[0], indicator))

@@ -54,6 +54,34 @@ def test_parse_cpe_matches(indicator_with_cpes):
         "relationship--3ad3537e-cc20-571d-9248-b63c23fc0b2b",
     }
 
+
+def test_parse_cpe_matches_skips_one_unresolvable_match(indicator_with_cpes, caplog):
+    broken = {"matchCriteriaId": "BROKEN-SWID"}
+    good = {"matchCriteriaId": "GOOD-SWID"}
+    grouping = {"id": "grouping--good", "name": "good"}
+    software = {"id": "software--good"}
+
+    with (
+        patch.object(cpe_match, "get_matches_for_cve", return_value=[broken, good]),
+        patch.object(
+            cpe_match,
+            "parse_objects_for_criteria",
+            side_effect=[ValueError("SWID missing from NVD"), [grouping, software]],
+        ),
+        patch.object(cpe_match, "relate_indicator", return_value=["relationship"]),
+        patch.object(cpe_match, "parse_deprecations", return_value=["deprecation"]),
+    ):
+        groupings, softwares, relationships, deprecations = (
+            cpe_match.parse_cpe_matches(indicator_with_cpes)
+        )
+
+    assert groupings == [grouping]
+    assert softwares == [software]
+    assert relationships == ["relationship"]
+    assert deprecations == ["deprecation"]
+    assert "skipping unresolvable CPE match BROKEN-SWID" in caplog.text
+    assert indicator_with_cpes.name in caplog.text
+
 @pytest.fixture
 def indicator_with_cpes():
     return Indicator(
